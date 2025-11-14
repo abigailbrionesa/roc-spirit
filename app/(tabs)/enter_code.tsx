@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TextInput, Text, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { TextInput, Text, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform, View, Image } from 'react-native';
 import { useFonts } from 'expo-font';
 
 export default function CodeInputScreen() {
@@ -24,18 +24,25 @@ export default function CodeInputScreen() {
             style={styles.container}
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
-            <Text style={styles.title}>Enter Your Code</Text>
-            <TextInput
-                style={styles.input}
-                placeholder=""
-                placeholderTextColor="#888"
-                value={code}
-                onChangeText={setCode}
-                autoCapitalize="characters"
+            <View style={styles.content}>
+                <Text style={styles.title}>Enter Your Code</Text>
+                <TextInput
+                    style={styles.input}
+                    placeholder=""
+                    placeholderTextColor="#888"
+                    value={code}
+                    onChangeText={setCode}
+                    autoCapitalize="characters"
+                />
+                <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+                    <Text style={styles.buttonText}>Submit</Text>
+                </TouchableOpacity>
+            </View>
+            <Image 
+                source={require('../../assets/rockyandgrass.png')} 
+                style={styles.bottomImage} 
+                resizeMode="contain"
             />
-            <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-                <Text style={styles.buttonText}>Submit</Text>
-            </TouchableOpacity>
         </KeyboardAvoidingView>
     );
 }
@@ -44,8 +51,12 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 20,
-        justifyContent: 'center',
+        justifyContent: 'space-between',
         backgroundColor: '#f0f4f8',
+    },
+    content: {
+        flex: 1,
+        justifyContent: 'center',
     },
     title: {
         fontSize: 24,
@@ -74,5 +85,10 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         fontSize: 30,
         fontFamily: 'pix',
+    },
+    bottomImage: {
+        width: '100%',
+        height: 120,
+        marginBottom: 10,
     },
 });
