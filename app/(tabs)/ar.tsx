@@ -1,47 +1,30 @@
 
-import * as ExpoCamera from 'expo-camera';
-import React, { useEffect, useRef, useState } from 'react';
+import { CameraView, useCameraPermissions } from 'expo-camera';
+import React, { useRef } from 'react';
 import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 const { width, height } = Dimensions.get('window');
 
 export default function ARScreen() {
-	const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-		const [isReady, setIsReady] = useState(false);
-		const cameraRef = useRef<any>(null);
-		const CameraComp: any = (ExpoCamera as any).Camera;
+	const [permission, requestPermission] = useCameraPermissions();
+	const cameraRef = useRef<any>(null);
 
-	useEffect(() => {
-		let mounted = true;
-			(async () => {
-						try {
-							const { status } = await (ExpoCamera as any).requestCameraPermissionsAsync();
-					if (!mounted) return;
-					setHasPermission(status === 'granted');
-				} catch {
-					if (!mounted) return;
-					setHasPermission(false);
-				} finally {
-					if (mounted) setIsReady(true);
-				}
-			})();
-
-		return () => {
-			mounted = false;
-		};
-	}, []);
-
-	if (!isReady) {
-		return null;
+	if (!permission) {
+		// Camera permissions are still loading
+		return <View style={styles.container} />;
 	}
 
-	if (hasPermission === false) {
+	if (!permission.granted) {
+		// Camera permissions are not granted yet
 		return (
 			<SafeAreaProvider>
 				<SafeAreaView style={styles.permissionContainer}>
-					<Text style={styles.permissionText}>Camera permission denied.</Text>
-					<Text style={styles.permissionSub}>Please enable camera permissions in system settings.</Text>
+					<Text style={styles.permissionText}>We need camera access</Text>
+					<Text style={styles.permissionSub}>Camera access is required for AR experiences.</Text>
+					<TouchableOpacity style={styles.permissionButton} onPress={requestPermission}>
+						<Text style={styles.permissionButtonText}>Grant Permission</Text>
+					</TouchableOpacity>
 				</SafeAreaView>
 			</SafeAreaProvider>
 		);
@@ -50,16 +33,11 @@ export default function ARScreen() {
 	return (
 		<SafeAreaProvider>
 			<SafeAreaView style={styles.container}>
-						{hasPermission ? (
-							<CameraComp
-								ref={cameraRef}
-								style={styles.camera}
-								ratio="16:9"
-								type={(ExpoCamera as any).CameraType?.back ?? 'back'}
-							/>
-						) : (
-					<View style={styles.cameraPlaceholder} />
-				)}
+				<CameraView
+					ref={cameraRef}
+					style={styles.camera}
+					facing="back"
+				/>
 
 				{/* Right-aligned vertical buttons */}
 				<View style={styles.rightButtons} pointerEvents="box-none">
@@ -131,5 +109,17 @@ const styles = StyleSheet.create({
 		color: '#ccc',
 		fontSize: 14,
 		textAlign: 'center',
+		marginBottom: 20,
+	},
+	permissionButton: {
+		backgroundColor: '#2563eb',
+		paddingHorizontal: 24,
+		paddingVertical: 12,
+		borderRadius: 8,
+	},
+	permissionButtonText: {
+		color: '#fff',
+		fontSize: 16,
+		fontWeight: '600',
 	},
 });
