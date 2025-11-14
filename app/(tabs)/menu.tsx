@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
         zIndex: -1,
     },
     wrapper: {
-        padding: 24,
+        padding: 20,
         maxWidth: 800,
         width: '100%',
         alignSelf: 'center',
@@ -134,6 +134,7 @@ const styles = StyleSheet.create({
     header: {
         alignItems: "center",
         marginBottom: 20,
+        marginTop:30,
     },
     subtitle: {
         fontSize: 18,
