@@ -9,7 +9,14 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "Allow $(PRODUCT_NAME) to access your photos",
+        "NSPhotoLibraryAddUsageDescription": "Allow $(PRODUCT_NAME) to save photos",
+        "NSCameraUsageDescription": "Allow $(PRODUCT_NAME) to use your camera",
+        "NSMicrophoneUsageDescription": "Allow $(PRODUCT_NAME) to use your microphone"
+      },
+      "bundleIdentifier": "com.dvu2.roc-spirit"
     },
     "android": {
       "adaptiveIcon": {
@@ -39,7 +46,9 @@
           }
         }
       ],
-      ["@reactvision/react-viro"]
+      [
+        "@reactvision/react-viro"
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
