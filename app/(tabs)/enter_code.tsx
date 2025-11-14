@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TextInput, Text, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform, View, Image } from 'react-native';
+import { TextInput, Text, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform, ImageBackground, View } from 'react-native';
 import { useFonts } from 'expo-font';
 
 export default function CodeInputScreen() {
@@ -20,43 +20,47 @@ export default function CodeInputScreen() {
     };
 
     return (
-        <KeyboardAvoidingView
-            style={styles.container}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        <ImageBackground
+            source={require('../../assets/rockyscene.png')}
+            style={styles.background}
+            resizeMode="cover"
         >
-            <View style={styles.content}>
-                <Text style={styles.title}>Enter Your Code</Text>
-                <TextInput
-                    style={styles.input}
-                    placeholder=""
-                    placeholderTextColor="#888"
-                    value={code}
-                    onChangeText={setCode}
-                    autoCapitalize="characters"
-                />
-                <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-                    <Text style={styles.buttonText}>Submit</Text>
-                </TouchableOpacity>
-            </View>
-            <Image 
-                source={require('../../assets/rockyandgrass.png')} 
-                style={styles.bottomImage} 
-                resizeMode="contain"
-            />
-        </KeyboardAvoidingView>
+            <KeyboardAvoidingView
+                style={styles.container}
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            >
+                <View style={styles.content}>
+                    <Text style={styles.title}>Enter Your Code</Text>
+                    <TextInput
+                        style={styles.input}
+                        placeholder=""
+                        placeholderTextColor="#888"
+                        value={code}
+                        onChangeText={setCode}
+                        autoCapitalize="characters"
+                    />
+                    <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+                        <Text style={styles.buttonText}>Submit</Text>
+                    </TouchableOpacity>
+                </View>
+            </KeyboardAvoidingView>
+        </ImageBackground>
     );
 }
 
 const styles = StyleSheet.create({
+    background: {
+        flex: 1,
+        width: '100%',
+        height: '100%',
+    },
     container: {
         flex: 1,
         padding: 20,
-        justifyContent: 'space-between',
-        backgroundColor: '#f0f4f8',
     },
     content: {
-        flex: 1,
-        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 150,
     },
     title: {
         fontSize: 24,
@@ -66,29 +70,25 @@ const styles = StyleSheet.create({
         color: '#1e3a8a',
     },
     input: {
-        borderWidth: 1,
-        borderColor: '#1e3a8a',
-        borderRadius: 8,
+        borderWidth: 3,
         padding: 12,
         fontSize: 18,
         fontFamily: 'pix',
         marginBottom: 20,
+        backgroundColor: 'white',
+        width: '100%',
         color: '#1e3a8a',
     },
     button: {
-        backgroundColor: '#2563eb',
+        backgroundColor: '#ffea00ff',
         paddingVertical: 14,
-        borderRadius: 10,
+        borderWidth: 3,
+        width: '100%',
     },
     buttonText: {
-        color: 'white',
+        color: 'black',
         textAlign: 'center',
         fontSize: 30,
         fontFamily: 'pix',
-    },
-    bottomImage: {
-        width: '100%',
-        height: 120,
-        marginBottom: 10,
     },
 });
