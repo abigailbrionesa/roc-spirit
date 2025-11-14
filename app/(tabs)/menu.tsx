@@ -25,9 +25,7 @@ export default function InstructionsMenu() {
         'pix': require('../../assets/fonts/pix.ttf'),
     });
 
-    if (!fontsLoaded) {
-        return null;
-    }
+    if (!fontsLoaded) return null;
 
     return (
         <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
@@ -47,57 +45,54 @@ export default function InstructionsMenu() {
                 </View>
 
                 <Section title="Overview">
-                    <Text>
-                        <Text style={styles.bold}>Rochester Spirit: AR Campus Quest</Text> is an
-                        immersive campus tour experience where you explore the University of Rochester
-                        using augmented reality, character interactions, and gamified learning.
+                    <Text style={styles.text}>
+                        <Text style={styles.underline}>Rochester Spirit: AR Campus Quest</Text> is an immersive campus tour experience where you explore the University of Rochester using augmented reality, character interactions, and gamified learning.
                     </Text>
                 </Section>
 
                 <Section title="How It Works">
                     <View style={styles.list}>
-                        <Text style={styles.listItem}><Text style={styles.bold}>Guided Exploration:</Text> Follow your tour guide.</Text>
-                        <Text style={styles.listItem}><Text style={styles.bold}>Find Posters:</Text> Scan character posters.</Text>
-                        <Text style={styles.listItem}><Text style={styles.bold}>AR Interaction:</Text> Meet characters & play games.</Text>
-                        <Text style={styles.listItem}><Text style={styles.bold}>Points:</Text> Earn points from quizzes.</Text>
-                        <Text style={styles.listItem}><Text style={styles.bold}>Winner:</Text> Top score wins UR merch.</Text>
+                        <Text style={styles.listItem}><Text style={styles.underline}>Guided Exploration:</Text> Follow your tour guide.</Text>
+                        <Text style={styles.listItem}><Text style={styles.underline}>Find Posters:</Text> Scan character posters.</Text>
+                        <Text style={styles.listItem}><Text style={styles.underline}>AR Interaction:</Text> Meet characters & play games.</Text>
+                        <Text style={styles.listItem}><Text style={styles.underline}>Points:</Text> Earn points from quizzes.</Text>
+                        <Text style={styles.listItem}><Text style={styles.underline}>Winner:</Text> Top score wins UR merch.</Text>
                     </View>
                 </Section>
 
                 <Section title="Characters">
                     <Text style={styles.category}>History & Traditions</Text>
                     <View style={styles.list}>
-                        <Text style={styles.listItem}><Text style={styles.bold}>Asahel the Scholar</Text> – Teaches “Meliora”.</Text>
-                        <Text style={styles.listItem}><Text style={styles.bold}>Azariah the Dandelion Spirit</Text> – Perseverance.</Text>
-                        <Text style={styles.listItem}><Text style={styles.bold}>Rocky the Yellowjacket</Text> – Mascot spirit.</Text>
+                        <Text style={styles.listItem}><Text style={styles.underline}>Asahel the Scholar</Text> – Teaches “Meliora”.</Text>
+                        <Text style={styles.listItem}><Text style={styles.underline}>Azariah the Dandelion Spirit</Text> – Perseverance.</Text>
+                        <Text style={styles.listItem}><Text style={styles.underline}>Rocky the Yellowjacket</Text> – Mascot spirit.</Text>
                     </View>
 
                     <Text style={styles.category}>Landmarks & Campus</Text>
                     <View style={styles.list}>
-                        <Text style={styles.listItem}><Text style={styles.bold}>Rush Rhees Librarian Ghost</Text> – Trivia.</Text>
-                        <Text style={styles.listItem}><Text style={styles.bold}>Clock Tower Guardian</Text> – Acorn toss.</Text>
-                        <Text style={styles.listItem}><Text style={styles.bold}>Eastman & Wilson Volunteers</Text> – Service game.</Text>
+                        <Text style={styles.listItem}><Text style={styles.underline}>Rush Rhees Librarian Ghost</Text> – Trivia.</Text>
+                        <Text style={styles.listItem}><Text style={styles.underline}>Clock Tower Guardian</Text> – Acorn toss.</Text>
+                        <Text style={styles.listItem}><Text style={styles.underline}>Eastman & Wilson Volunteers</Text> – Service game.</Text>
                     </View>
 
                     <Text style={styles.category}>Arts & Music</Text>
                     <View style={styles.list}>
-                        <Text style={styles.listItem}><Text style={styles.bold}>Maestro of Eastman</Text> – Conducting game.</Text>
-                        <Text style={styles.listItem}><Text style={styles.bold}>Gallery Greeter</Text> – Art puzzles.</Text>
+                        <Text style={styles.listItem}><Text style={styles.underline}>Maestro of Eastman</Text> – Conducting game.</Text>
+                        <Text style={styles.listItem}><Text style={styles.underline}>Gallery Greeter</Text> – Art puzzles.</Text>
                     </View>
 
                     <Text style={styles.category}>Seasonal & Fun</Text>
                     <View style={styles.list}>
-                        <Text style={styles.listItem}><Text style={styles.bold}>Winterfest Snow Sprite</Text> – Toss game.</Text>
-                        <Text style={styles.listItem}><Text style={styles.bold}>Boar’s Head Herald</Text> – Feast trivia.</Text>
-                        <Text style={styles.listItem}><Text style={styles.bold}>Tunnel Painter</Text> – Virtual graffiti.</Text>
-                        <Text style={styles.listItem}><Text style={styles.bold}>Quizmaster Owl</Text> – Bonus quizzes.</Text>
+                        <Text style={styles.listItem}><Text style={styles.underline}>Winterfest Snow Sprite</Text> – Toss game.</Text>
+                        <Text style={styles.listItem}><Text style={styles.underline}>Boar’s Head Herald</Text> – Feast trivia.</Text>
+                        <Text style={styles.listItem}><Text style={styles.underline}>Tunnel Painter</Text> – Virtual graffiti.</Text>
+                        <Text style={styles.listItem}><Text style={styles.underline}>Quizmaster Owl</Text> – Bonus quizzes.</Text>
                     </View>
                 </Section>
 
                 <Section title="Rewards">
-                    <Text>
-                        Earn points from each interaction and final quiz. The player with the most points
-                        wins official <Text style={styles.bold}>University of Rochester merchandise</Text>.
+                    <Text style={styles.text}>
+                        Earn points from each interaction and final quiz. The player with the most points wins official University of Rochester merchandise
                     </Text>
                 </Section>
 
@@ -126,7 +121,7 @@ const styles = StyleSheet.create({
         zIndex: -1,
     },
     wrapper: {
-        padding: 24,
+        padding: 20,
         maxWidth: 800,
         width: '100%',
         alignSelf: 'center',
@@ -134,21 +129,25 @@ const styles = StyleSheet.create({
     header: {
         alignItems: "center",
         marginBottom: 20,
+        marginTop: 30,
     },
     subtitle: {
-        fontSize: 18,
+        fontSize: 20,
         color: "#d5ddf4",
         fontFamily: "pix",
     },
+    text: {
+        fontFamily: "pix",
+        color: "#374151",
+        fontSize: 20,
+    },
     sectionContainer: {
-        borderWidth: 1,
-        borderColor: "#bfdbfe",
-        backgroundColor: "rgba(255, 255, 255, 0.8)",
+        borderWidth: 3,
+        borderColor: "#000000ff",
+        backgroundColor: "rgba(255, 255, 255, 1)",
         padding: 16,
-        borderRadius: 16,
         shadowColor: "#000",
-        shadowOpacity: 0.05,
-        shadowRadius: 4,
+        shadowOpacity: 1,
         marginBottom: 20,
     },
     sectionHeader: {
@@ -157,7 +156,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     sectionTitle: {
-        fontSize: 20,
+        fontSize: 25,
         color: "#1e3a8a",
         fontFamily: "pix",
     },
@@ -170,20 +169,16 @@ const styles = StyleSheet.create({
     },
     listItem: {
         marginBottom: 6,
-        fontSize: 15,
+        fontSize: 20,
         color: "#374151",
         fontFamily: "pix",
-    },
-    bold: {
-        fontFamily: "pix",
-        fontWeight: "bold",
     },
     category: {
         marginTop: 10,
         marginBottom: 6,
         color: "#1e3a8a",
         fontFamily: "pix",
-        fontWeight: "600",
+        textDecorationLine: "underline",
     },
     startButton: {
         backgroundColor: "#2563eb",
@@ -200,11 +195,15 @@ const styles = StyleSheet.create({
         textAlign: "center",
         fontSize: 17,
         fontFamily: "pix",
-        fontWeight: "600",
+        textDecorationLine: "underline",
     },
     logo: {
         width: 200,
         height: 150,
         marginBottom: 10,
+    },
+    underline: {
+        textDecorationLine: 'underline',
+        fontFamily: 'pix',
     },
 });

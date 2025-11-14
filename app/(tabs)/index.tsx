@@ -1,13 +1,15 @@
 import React, { useRef, useEffect } from 'react';
 import { ImageBackground, Image, View, StyleSheet, Animated, Dimensions } from 'react-native';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
-
+import { useRouter } from 'expo-router';
+import { TouchableOpacity } from 'react-native';
 const { height } = Dimensions.get('window');
 
 const AnimatedImageBackground = Animated.createAnimatedComponent(ImageBackground);
 
 const HomeScreen = () => {
   const scrollY = useRef(new Animated.Value(0)).current;
+  const router = useRouter();
 
   useEffect(() => {
     Animated.loop(
@@ -44,11 +46,13 @@ const HomeScreen = () => {
             style={styles.button}
             resizeMode="contain"
           />
-          <Image
-            source={require('../../assets/menubutton.png')}
-            style={styles.button}
-            resizeMode="contain"
-          />
+          <TouchableOpacity onPress={() => router.push('/menu')}>
+            <Image
+              source={require('../../assets/menubutton.png')}
+              style={styles.button}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
     </SafeAreaProvider>
