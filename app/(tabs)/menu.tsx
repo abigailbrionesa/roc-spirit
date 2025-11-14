@@ -1,7 +1,5 @@
-import React, { useRef, useEffect } from 'react';
-import { ImageBackground, Image, View, StyleSheet, Animated, Dimensions } from 'react-native';
-import { useState } from 'react';
-import { Text, TouchableOpacity, ScrollView } from "react-native";
+import React, { useState } from 'react';
+import { ImageBackground, Image, View, StyleSheet, Dimensions, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from "@expo/vector-icons";
 import { useFonts } from 'expo-font';
 
@@ -20,10 +18,7 @@ const Section = ({ title, children }: any) => {
     );
 };
 
-
 const { height } = Dimensions.get('window');
-
-const AnimatedImageBackground = Animated.createAnimatedComponent(ImageBackground);
 
 export default function InstructionsMenu() {
     const [fontsLoaded] = useFonts({
@@ -34,38 +29,17 @@ export default function InstructionsMenu() {
         return null;
     }
 
-    const scrollY = useRef(new Animated.Value(0)).current;
-
-    useEffect(() => {
-        Animated.loop(
-            Animated.timing(scrollY, {
-                toValue: -height,
-                duration: 15000,
-                useNativeDriver: true,
-            })
-        ).start();
-    }, []);
-
     return (
-        <ScrollView contentContainerStyle={styles.container}>
-
-            <View style={styles.backgroundWrapper}>
-                <AnimatedImageBackground
-                    source={require('../../assets/background2.png')}
-                    style={[
-                        styles.background,
-                        { transform: [{ translateY: scrollY }] },
-                    ]}
-                    resizeMode="repeat"
-                />
-            </View>
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+            <ImageBackground
+                source={require('../../assets/background2.png')}
+                style={styles.background}
+                resizeMode="cover"
+            />
             <View style={styles.wrapper}>
-
-
-
                 <View style={styles.header}>
                     <Image
-                        source={require('../../assets/rocspirit.png')}
+                        source={require('../../assets/roclogo2.png')}
                         style={styles.logo}
                         resizeMode="contain"
                     />
@@ -82,21 +56,11 @@ export default function InstructionsMenu() {
 
                 <Section title="How It Works">
                     <View style={styles.list}>
-                        <Text style={styles.listItem}>
-                            <Text style={styles.bold}>Guided Exploration:</Text> Follow your tour guide.
-                        </Text>
-                        <Text style={styles.listItem}>
-                            <Text style={styles.bold}>Find Posters:</Text> Scan character posters.
-                        </Text>
-                        <Text style={styles.listItem}>
-                            <Text style={styles.bold}>AR Interaction:</Text> Meet characters & play games.
-                        </Text>
-                        <Text style={styles.listItem}>
-                            <Text style={styles.bold}>Points:</Text> Earn points from quizzes.
-                        </Text>
-                        <Text style={styles.listItem}>
-                            <Text style={styles.bold}>Winner:</Text> Top score wins UR merch.
-                        </Text>
+                        <Text style={styles.listItem}><Text style={styles.bold}>Guided Exploration:</Text> Follow your tour guide.</Text>
+                        <Text style={styles.listItem}><Text style={styles.bold}>Find Posters:</Text> Scan character posters.</Text>
+                        <Text style={styles.listItem}><Text style={styles.bold}>AR Interaction:</Text> Meet characters & play games.</Text>
+                        <Text style={styles.listItem}><Text style={styles.bold}>Points:</Text> Earn points from quizzes.</Text>
+                        <Text style={styles.listItem}><Text style={styles.bold}>Winner:</Text> Top score wins UR merch.</Text>
                     </View>
                 </Section>
 
@@ -155,51 +119,37 @@ export default function InstructionsMenu() {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        padding: 24,
-        backgroundColor: "#e0f2fe",
-        flex: 1,
-        alignItems: "center",
-        justifyContent: 'center',
+    background: {
+        ...StyleSheet.absoluteFillObject,
+        width: '100%',
+        height: height,
+        zIndex: -1,
     },
     wrapper: {
+        padding: 24,
         maxWidth: 800,
-        width: "100%",
-        alignSelf: "center",
-        gap: 20,
+        width: '100%',
+        alignSelf: 'center',
     },
     header: {
         alignItems: "center",
-        marginBottom: 10,
-    },
-    title: {
-        fontSize: 32,
-        color: "#f4f7ffff",
-        fontFamily: "pix",
+        marginBottom: 20,
     },
     subtitle: {
         fontSize: 18,
-        color: "#d5ddf4ff",
+        color: "#d5ddf4",
         fontFamily: "pix",
-    },
-    backgroundWrapper: {
-        ...StyleSheet.absoluteFillObject,
-        overflow: 'hidden',
-    },
-    background: {
-        width: '100%',
-        height: height * 2,
     },
     sectionContainer: {
         borderWidth: 1,
         borderColor: "#bfdbfe",
-        backgroundColor: "rgba(255, 255, 255, 0.7)",
+        backgroundColor: "rgba(255, 255, 255, 0.8)",
         padding: 16,
         borderRadius: 16,
         shadowColor: "#000",
         shadowOpacity: 0.05,
         shadowRadius: 4,
-        marginBottom: 12,
+        marginBottom: 20,
     },
     sectionHeader: {
         flexDirection: "row",
@@ -226,7 +176,7 @@ const styles = StyleSheet.create({
     },
     bold: {
         fontFamily: "pix",
-        fontWeight: "bold", // optional if your font has bold variant
+        fontWeight: "bold",
     },
     category: {
         marginTop: 10,
@@ -242,7 +192,8 @@ const styles = StyleSheet.create({
         shadowColor: "#000",
         shadowOpacity: 0.2,
         shadowRadius: 4,
-        marginTop: 10,
+        marginTop: 20,
+        marginBottom: 40,
     },
     startText: {
         color: "white",
@@ -253,6 +204,7 @@ const styles = StyleSheet.create({
     },
     logo: {
         width: 200,
-        height: 100,
+        height: 150,
+        marginBottom: 10,
     },
 });
