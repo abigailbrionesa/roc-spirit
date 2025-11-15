@@ -6,7 +6,6 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
-
 SplashScreen.preventAutoHideAsync();
 
 export const unstable_settings = {
@@ -19,6 +18,8 @@ export default function RootLayout() {
   const [fontsLoaded, error] = useFonts({
     InterBold: require('../assets/fonts/pix.ttf'),
     Snowball: require('../assets/fonts/snowbell.ttf'),
+    Vt: require('../assets/fonts/vt.ttf'),
+
   });
 
   useEffect(() => {
@@ -43,6 +44,7 @@ export default function RootLayout() {
           }} 
         />
       </Stack>
+
       <StatusBar style="auto" />
     </ThemeProvider>
   );
