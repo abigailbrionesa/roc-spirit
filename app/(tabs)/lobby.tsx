@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, Animated, Easing } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useLocalSearchParams } from 'expo-router';
 import { useFonts } from 'expo-font';
@@ -9,7 +9,6 @@ export default function LobbyScreen() {
     const { code } = useLocalSearchParams<{ code: string }>();
     const [name, setName] = useState('');
     const [players, setPlayers] = useState(['Alice', 'Bob', 'Charlie']);
-    const [pressedAnim] = useState(new Animated.Value(1));
 
     const [fontsLoaded] = useFonts({
         pix: require('../../assets/fonts/pix.ttf'),
@@ -23,29 +22,10 @@ export default function LobbyScreen() {
             setPlayers([...players, name]);
         }
         setName('');
-        animateButton();
     };
 
     const handleBegin = () => {
         alert('Game Started!');
-        animateButton();
-    };
-
-    const animateButton = () => {
-        Animated.sequence([
-            Animated.timing(pressedAnim, {
-                toValue: 0.95,
-                duration: 100,
-                useNativeDriver: true,
-                easing: Easing.ease,
-            }),
-            Animated.timing(pressedAnim, {
-                toValue: 1,
-                duration: 100,
-                useNativeDriver: true,
-                easing: Easing.ease,
-            }),
-        ]).start();
     };
 
     const renderPlayer = ({ item }: { item: string }) => (
@@ -66,13 +46,10 @@ export default function LobbyScreen() {
                 contentContainerStyle={{ paddingBottom: 20 }}
             />
 
-            {/* Input + Add Name Button Row */}
             <View style={styles.inputRow}>
-                <Animated.View style={{ transform: [{ scale: pressedAnim }] }}>
-                    <TouchableOpacity style={styles.joinButtonRow} onPress={handleJoin}>
-                        <Text style={styles.buttonText}>Add Name</Text>
-                    </TouchableOpacity>
-                </Animated.View>
+                <TouchableOpacity style={styles.joinButtonRow} onPress={handleJoin}>
+                    <Text style={styles.buttonText}>Add Name</Text>
+                </TouchableOpacity>
                 <TextInput
                     style={styles.inputRowField}
                     placeholder=""
@@ -82,11 +59,9 @@ export default function LobbyScreen() {
                 />
             </View>
 
-            <Animated.View style={{ transform: [{ scale: pressedAnim }] }}>
-                <TouchableOpacity style={styles.beginButton} onPress={handleBegin}>
-                    <Text style={styles.buttonText}>Begin</Text>
-                </TouchableOpacity>
-            </Animated.View>
+            <TouchableOpacity style={styles.beginButton} onPress={handleBegin}>
+                <Text style={styles.buttonText}>Begin</Text>
+            </TouchableOpacity>
         </View>
     );
 }
@@ -139,7 +114,6 @@ const styles = StyleSheet.create({
         marginRight: 10,
         borderWidth: 3,
         borderColor: '#1e3a8a',
-
     },
     inputRowField: {
         flex: 1,
@@ -154,18 +128,14 @@ const styles = StyleSheet.create({
         backgroundColor: '#facc15',
         padding: 16,
         alignItems: 'center',
-        shadowColor: '#facc15',
         borderWidth: 3,
         borderColor: '#1e3a8a',
-        color:  '#1e3a8a',
-        shadowOpacity: 0.3,
-        shadowOffset: { width: 0, height: 5 },
-        shadowRadius: 8,
+        color: '#1e3a8a',
         marginTop: 12,
     },
     buttonText: {
         fontSize: 20,
         fontFamily: 'pix',
-        color:  '#1e3a8a',
+        color: '#1e3a8a',
     },
 });
