@@ -24,7 +24,6 @@ const ChatScreen: React.FC = () => {
         <View style={styles.body}>
           <Text style={styles.placeholder}>
             Here we’ll later plug in conversational AI.
-            {"\n\n"}
             For now, imagine this is a chat log with the character you tapped in AR.
           </Text>
         </View>
