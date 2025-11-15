@@ -39,10 +39,12 @@ const HomeScreen = () => {
           style={styles.logo}
           resizeMode="contain"
         />
-        
+
         <View style={styles.buttonContainer}>
-          {/* Main Action Buttons */}
-          <TouchableOpacity onPress={() => router.push('/ar')}>
+
+          <TouchableOpacity
+            onPress={() => router.push('/enter_code')}
+          >
             <Image
               source={require('../../assets/startbutton.png')}
               style={styles.button}
@@ -56,32 +58,31 @@ const HomeScreen = () => {
               resizeMode="contain"
             />
           </TouchableOpacity>
-          
-          {/* Additional Features Row */}
+
           <View style={styles.featureRow}>
-            <TouchableOpacity 
-              style={styles.featureButton} 
-              onPress={() => router.push('/enter_code')}
+            <TouchableOpacity
+              style={styles.featureButton}
+              onPress={() => router.push('/ar')}
             >
-              <Text style={styles.featureButtonText}>🎮 Join</Text>
+              <Text style={styles.featureButtonText}>🎮 AR</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity 
-              style={styles.featureButton} 
+            <TouchableOpacity
+              style={styles.featureButton}
               onPress={() => router.push('/map')}
             >
               <Text style={styles.featureButtonText}>📍 Map</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={styles.featureButton} 
+
+            <TouchableOpacity
+              style={styles.featureButton}
               onPress={() => router.push('/quiz')}
             >
               <Text style={styles.featureButtonText}>❓ Quiz</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={styles.featureButton} 
+
+            <TouchableOpacity
+              style={styles.featureButton}
               onPress={() => router.push('/leaderboard')}
             >
               <Text style={styles.featureButtonText}>🏆 Ranks</Text>
@@ -140,6 +141,7 @@ const styles = StyleSheet.create({
   },
   featureButtonText: {
     color: '#fff',
+    fontFamily: 'pix',
     fontSize: 14,
     fontWeight: '700',
   },

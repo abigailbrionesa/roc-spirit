@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { TextInput, Text, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform, ImageBackground, View } from 'react-native';
 import { useFonts } from 'expo-font';
 import { useRouter } from 'expo-router';
-
+import { colors } from '@/lib/colors';
 export default function CodeInputScreen() {
     const [code, setCode] = useState('');
     const router = useRouter();
@@ -27,70 +27,76 @@ export default function CodeInputScreen() {
             style={styles.background}
             resizeMode="cover"
         >
-            <KeyboardAvoidingView
-                style={styles.container}
-                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            >
-                <View style={styles.content}>
-                    <Text style={styles.title}>Enter Your Code</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder=""
-                        placeholderTextColor="#888"
-                        value={code}
+
+                <View style={styles.container}>
+                    <View style={styles.inputRow}>
+                        <TouchableOpacity
+                            style={[styles.joinButtonRow]}
+
+                        >
+                            <Text style={styles.buttonText}>Code</Text>
+                        </TouchableOpacity>
+
+                        <TextInput
+                            style={styles.inputRowField}
+                            value={code}
                         onChangeText={setCode}
                         autoCapitalize="characters"
-                    />
-                    <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+                        />
+                    </View>
+
+                    <TouchableOpacity style={styles.beginButton} onPress={handleSubmit}>
                         <Text style={styles.buttonText}>Submit</Text>
                     </TouchableOpacity>
                 </View>
-            </KeyboardAvoidingView>
         </ImageBackground>
     );
 }
 
 const styles = StyleSheet.create({
-    background: {
-        flex: 1,
-        width: '100%',
-        height: '100%',
-    },
-    container: {
-        flex: 1,
-        padding: 20,
-    },
-    content: {
-        alignItems: 'center',
-        marginTop: 150,
-    },
-    title: {
-        fontSize: 24,
-        fontFamily: 'pix',
-        textAlign: 'center',
-        marginBottom: 20,
-        color: '#1e3a8a',
-    },
-    input: {
-        borderWidth: 3,
-        padding: 12,
-        fontSize: 18,
-        fontFamily: 'pix',
-        marginBottom: 20,
-        backgroundColor: 'white',
-        width: '100%',
-        color: '#1e3a8a',
-    },
-    button: {
-        backgroundColor: '#ffea00ff',
-        paddingVertical: 14,
-        borderWidth: 3,
-        width: '100%',
-    },
-    buttonText: {
-        color: 'black',
-        textAlign: 'center',
-        fontSize: 30,
-        fontFamily: 'pix',
-    },
+  background: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  container: {
+    flex: 1,
+    padding: 20,
+    marginTop: 40,
+  },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 0,
+  },
+  joinButtonRow: {
+    backgroundColor: colors.secondary.connectiveCornflower,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    marginRight: 10,
+    borderWidth: 2.5,
+    borderColor: colors.primary.navy,
+  },
+  inputRowField: {
+    flex: 1,
+    borderWidth: 2.5,
+    borderColor: colors.primary.navy,
+    padding: 14,
+    fontSize: 20,
+    fontFamily: 'pix',
+    backgroundColor: colors.tertiary.white,
+  },
+  beginButton: {
+    backgroundColor: colors.primary.dandelion,
+    padding: 16,
+    alignItems: 'center',
+    borderWidth: 2.5,
+    borderColor: colors.primary.navy,
+    marginTop: 8,
+  },
+  buttonText: {
+    fontSize: 15,
+    fontFamily: 'Snowball',
+    color: colors.primary.navy,
+  },
 });
