@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { View, StyleSheet, ActivityIndicator } from "react-native";
+import { View, StyleSheet, ActivityIndicator, Text } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import * as Location from "expo-location";
 import pixelStyle from "../../assets/pixelstyle.json";
+import { Image } from "react-native";
 
 export default function CampusMap() {
     const [location, setLocation] = useState(null);
@@ -58,37 +59,72 @@ export default function CampusMap() {
     }
 
     return (
-        <MapView
-            style={styles.map}
-            initialRegion={UR_CENTER}
-            showsUserLocation={true}
-            showsMyLocationButton={true}
-            customMapStyle={pixelStyle}
+        <View style={styles.container}>
+            <View style={styles.header}>
+                <View style={styles.headerContent}>
+                    <Image
+                        source={require("../../assets/mapicon.png")}
+                        style={styles.headerIcon}
+                    />
+                    <Text style={styles.headerText}>Campus Map</Text>
+                </View>
+            </View>
 
-        >
-            {markers.map((m) => (
-                <Marker
-                    key={m.id}
-                    coordinate={m.coordinate}
-                    title={m.title}
-                />
-            ))}
+            <MapView
+                style={styles.map}
+                initialRegion={UR_CENTER}
+                showsUserLocation={true}
+                showsMyLocationButton={true}
+                customMapStyle={pixelStyle}
+            >
+                {markers.map((m) => (
+                    <Marker key={m.id} coordinate={m.coordinate} title={m.title} />
+                ))}
 
-            {location && (
-                <Marker
-                    coordinate={{
-                        latitude: location.latitude,
-                        longitude: location.longitude,
-                    }}
-                    pinColor="blue"
-                    title="Your Location"
-                />
-            )}
-        </MapView>
+                {location && (
+                    <Marker
+                        coordinate={{
+                            latitude: location.latitude,
+                            longitude: location.longitude,
+                        }}
+                        pinColor="blue"
+                        title="Your Location"
+                    />
+                )}
+            </MapView>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+    },
+    header: {
+        backgroundColor: "#FFD82B",
+        justifyContent: "center",
+        alignItems: "center",
+        paddingTop: 50,
+        paddingBottom: 20,
+        borderBottomWidth: 3,
+        borderColor: '#1e3a8a',
+    },
+    headerContent: {
+        flexDirection: "row",
+        alignItems: "center",
+        
+    },
+    headerText: {
+        fontSize: 40,
+        fontFamily: "pix",
+        marginLeft: 10,
+        color: "#000",
+    },
+    headerIcon: {
+        width: 50,
+        height: 50,
+        resizeMode: "contain",
+    },
     map: {
         flex: 1,
     },
