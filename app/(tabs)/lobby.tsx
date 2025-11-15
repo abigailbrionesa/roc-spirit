@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
     },
     subtitle: {
-        fontSize: 20,
+        fontSize: 25,
         fontFamily: 'pix',
         marginBottom: 10,
         color: '#2563eb',
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
         marginTop: 12,
     },
     buttonText: {
-        fontSize: 20,
+        fontSize: 25,
         fontFamily: 'pix',
         color: '#1e3a8a',
     },
