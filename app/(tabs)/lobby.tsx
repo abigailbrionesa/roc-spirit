@@ -53,7 +53,7 @@ const PlayerCard = ({ player }: { player: any }) => {
       case 'avatar4.png':
         return require('../../assets/avatars/avatar4.png');
       default:
-        return require('../../assets/avatars/avatar1.png');
+        return require('../../assets/avatars/avatar5.png');
     }
   };
 
@@ -113,7 +113,7 @@ export default function LobbyScreen() {
     if (!name.trim() || !code) return;
 
     try {
-      const avatar = "avatar4.png";
+      const avatar = "avatar5.png";
       const newPlayer = await joinRoom(code, name, avatar);
 
       setPlayers((prev) => [...prev, newPlayer]);
@@ -162,8 +162,8 @@ export default function LobbyScreen() {
 
   const renderAvatar = (avatarName: string) => {
     switch (avatarName) {
-      case "avatar1.png":
-        return require("../../assets/avatars/avatar1.png");
+      case "avatar5.png":
+        return require("../../assets/avatars/avatar5.png");
       case "avatar2.png":
         return require("../../assets/avatars/avatar2.png");
       case "avatar3.png":
@@ -171,7 +171,7 @@ export default function LobbyScreen() {
       case "avatar4.png":
         return require("../../assets/avatars/avatar4.png");
       default:
-        return require("../../assets/avatars/avatar1.png");
+        return require("../../assets/avatars/avatar5.png");
     }
   };
 
