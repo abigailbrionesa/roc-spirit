@@ -1,4 +1,5 @@
 // app/ar/posterArScene.tsx
+// Sequential quest version - only shows the CURRENT target
 
 import {
   Viro3DObject,
@@ -8,9 +9,11 @@ import {
   ViroAmbientLight,
   ViroDirectionalLight,
   ViroNode,
-  ViroText,
 } from "@reactvision/react-viro";
 import React, { useEffect, useRef, useState } from "react";
+import type { QuestStop } from "../config/questStops";
+import { QUEST_STOPS } from "../config/questStops";
+import type { GamePhase } from "../store/useGameStore";
 import { POSTER_TARGET_IDS } from "./posterTargets";
 
 // -----------------------------
@@ -40,42 +43,16 @@ try {
       physicalWidth: 0.6,
     },
   });
-} catch (e) {
+} catch {
   console.log("[PosterArScene] Tracking targets already created");
 }
 
-// -----------------------------
-// Model configurations
-// -----------------------------
-
-const CHARACTER_NAMES = {
-  [POSTER_TARGET_IDS.FLOWER]: "Flower Spirit",
-  [POSTER_TARGET_IDS.GHOST]: "Ghost Friend",
+// Map poster target names to character names for display
+const CHARACTER_NAMES: Record<string, string> = {
   [POSTER_TARGET_IDS.ROCKY]: "Rocky",
+  [POSTER_TARGET_IDS.GHOST]: "Ghost Friend",
+  [POSTER_TARGET_IDS.FLOWER]: "Flower Spirit",
   [POSTER_TARGET_IDS.TEACHER]: "Teacher",
-};
-
-const POSTER_CONFIGS = {
-  [POSTER_TARGET_IDS.FLOWER]: {
-    model: require("../../assets/models/flower.glb"),
-    scale: [0.05, 0.05, 0.05] as [number, number, number],
-    rotation: [0, 180, 0] as [number, number, number],
-  },
-  [POSTER_TARGET_IDS.GHOST]: {
-    model: require("../../assets/models/ghost_ur.glb"),
-    scale: [0.05, 0.05, 0.05] as [number, number, number],
-    rotation: [0, 0, 0] as [number, number, number],
-  },
-  [POSTER_TARGET_IDS.ROCKY]: {
-    model: require("../../assets/models/Rocky3.glb"),
-    scale: [0.05, 0.05, 0.05] as [number, number, number],
-    rotation: [0, 180, 0] as [number, number, number],
-  },
-  [POSTER_TARGET_IDS.TEACHER]: {
-    model: require("../../assets/models/teacher.glb"),
-    scale: [0.6, 0.6, 0.6] as [number, number, number],
-    rotation: [0, 0, 0] as [number, number, number],
-  },
 };
 
 // -----------------------------
@@ -83,179 +60,90 @@ const POSTER_CONFIGS = {
 // -----------------------------
 
 type PosterArSceneProps = {
-  onPosterFound?: (characterName: string) => void;
-  onPosterLost?: () => void;
-  collectedCharacters?: Set<string>;
+  currentTarget: QuestStop;
+  gamePhase: GamePhase;
+  collectedMascots: string[];
+  onScanSuccess: () => void;
+  onCollectedCharacterScanned: (scannedId: string, scannedName: string) => void;
+  onScanFailure: (scannedName: string) => void;
 };
 
 const PosterArScene: React.FC<PosterArSceneProps> = ({ 
-  onPosterFound, 
-  onPosterLost,
-  collectedCharacters = new Set(),
+  currentTarget,
+  gamePhase,
+  collectedMascots,
+  onScanSuccess,
+  onCollectedCharacterScanned,
+  onScanFailure,
 }) => {
-  const [visiblePosters, setVisiblePosters] = useState<Set<string>>(new Set());
-  const [isTracking, setIsTracking] = useState<{ [key: string]: boolean }>({});
-  const hideTimeoutsRef = useRef<{ [key: string]: NodeJS.Timeout }>({});
+  const [markerVisible, setMarkerVisible] = useState(false);
+  const hasTriggeredRef = useRef(false);
+  const ignoreWrongScansUntilRef = useRef<number>(0);
 
-  // Much shorter debounce now that we have proper tracking state
-  const HIDE_DEBOUNCE_MS = 3000; // 3 seconds
+  // Reset state when currentTarget changes
+  useEffect(() => {
+    console.log("[PosterArScene] Current target changed to:", currentTarget.name);
+    setMarkerVisible(false);
+    hasTriggeredRef.current = false;
+    // Ignore wrong poster scans for 2 seconds after target change
+    ignoreWrongScansUntilRef.current = Date.now() + 2000;
+  }, [currentTarget.posterTargetName, currentTarget.name]);
 
-  const clearHideTimeout = (posterName: string) => {
-    if (hideTimeoutsRef.current[posterName]) {
-      clearTimeout(hideTimeoutsRef.current[posterName]);
-      delete hideTimeoutsRef.current[posterName];
+  // Reset markerVisible when returning to FINDING phase
+  useEffect(() => {
+    if (gamePhase === "FINDING") {
+      console.log("[PosterArScene] Returning to FINDING phase, resetting marker");
+      setMarkerVisible(false);
+      hasTriggeredRef.current = false;
+      // Also ignore wrong scans when returning to FINDING
+      ignoreWrongScansUntilRef.current = Date.now() + 2000;
     }
-  };
+  }, [gamePhase]);
 
-  const scheduleHide = (posterName: string) => {
-    clearHideTimeout(posterName);
+  const handleAnchorFound = (scannedTargetName: string) => {
+    console.log(`[PosterArScene] Poster detected:`, scannedTargetName, "Current target:", currentTarget.posterTargetName);
     
-    hideTimeoutsRef.current[posterName] = setTimeout(() => {
-      console.log(`[PosterArScene] ${posterName}: No activity for ${HIDE_DEBOUNCE_MS}ms → hiding`);
+    // Check if this is the correct poster
+    if (scannedTargetName === currentTarget.posterTargetName) {
+      console.log("[PosterArScene] ✅ Correct poster!");
+      setMarkerVisible(true);
       
-      setIsTracking((prev) => {
-        const newTracking = { ...prev };
-        delete newTracking[posterName];
-        return newTracking;
-      });
+      // Only trigger scan success if we're in FINDING phase and haven't triggered yet
+      if (gamePhase === "FINDING" && !hasTriggeredRef.current) {
+        hasTriggeredRef.current = true;
+        onScanSuccess();
+      }
+    } else {
+      // Check if this character has already been collected
+      const scannedCharacter = QUEST_STOPS.find(stop => stop.posterTargetName === scannedTargetName);
       
-      let shouldCallLost = false;
-      
-      setVisiblePosters((prev) => {
-        if (!prev.has(posterName)) return prev;
-        
-        const newSet = new Set(prev);
-        newSet.delete(posterName);
-        
-        // Check if we should call onPosterLost
-        if (newSet.size === 0 && prev.size > 0) {
-          shouldCallLost = true;
-          console.log("[PosterArScene] Marking to call onPosterLost");
+      if (scannedCharacter && collectedMascots.includes(scannedCharacter.id)) {
+        // This is a previously collected character - allow interaction
+        console.log("[PosterArScene] ✅ Previously collected character!");
+        onCollectedCharacterScanned(scannedCharacter.id, scannedCharacter.name);
+      } else {
+        // Ignore wrong scans during the cooldown period
+        if (Date.now() < ignoreWrongScansUntilRef.current) {
+          console.log("[PosterArScene] ⏭️ Ignoring wrong poster during transition");
+          return;
         }
         
-        return newSet;
-      });
-      
-      // Call onPosterLost outside of setState
-      if (shouldCallLost) {
-        console.log("[PosterArScene] No posters visible → calling onPosterLost");
-        setTimeout(() => {
-          console.log("[PosterArScene] Actually calling onPosterLost callback");
-          onPosterLost?.();
-        }, 0);
+        console.log("[PosterArScene] ❌ Wrong poster!");
+        const scannedName = CHARACTER_NAMES[scannedTargetName] || "Unknown";
+        onScanFailure(scannedName);
       }
-      
-      delete hideTimeoutsRef.current[posterName];
-    }, HIDE_DEBOUNCE_MS);
-  };
-
-  const handleAnchorFound = (posterName: string) => {
-    console.log(`[PosterArScene] ${posterName} poster detected (onAnchorFound)`);
-    
-    clearHideTimeout(posterName);
-    
-    setIsTracking((prev) => ({ ...prev, [posterName]: true }));
-    
-    const wasNotVisible = !visiblePosters.has(posterName);
-    
-    setVisiblePosters((prev) => {
-      if (!prev.has(posterName)) {
-        return new Set(prev).add(posterName);
-      }
-      return prev;
-    });
-    
-    if (wasNotVisible) {
-      const characterName = CHARACTER_NAMES[posterName as keyof typeof CHARACTER_NAMES];
-      onPosterFound?.(characterName);
-      console.log(`[PosterArScene] Notifying parent: ${characterName} found`);
     }
-    
-    // Schedule initial hide
-    scheduleHide(posterName);
   };
 
-  const handleAnchorUpdated = (posterName: string) => {
-    // Mark as actively tracking and reset the hide timer
-    setIsTracking((prev) => ({ ...prev, [posterName]: true }));
-    
-    clearHideTimeout(posterName);
-    scheduleHide(posterName);
-    
-    setVisiblePosters((prev) => {
-      if (!prev.has(posterName)) {
-        return new Set(prev).add(posterName);
-      }
-      return prev;
-    });
-  };
-
-  // Keepalive: Monitor tracking state and clear it if no updates
-  useEffect(() => {
-    const interval = setInterval(() => {
-      // Reset all tracking flags - they'll be set back to true by onAnchorUpdated if still tracking
-      setIsTracking((prev) => {
-        const newTracking: { [key: string]: boolean } = {};
-        Object.keys(prev).forEach((posterName) => {
-          // Set to false - will be set back to true if onAnchorUpdated fires
-          newTracking[posterName] = false;
-        });
-        return newTracking;
-      });
-    }, 1000); // Check every second
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const renderPosterMarker = (targetId: string) => {
-    const config = POSTER_CONFIGS[targetId as keyof typeof POSTER_CONFIGS];
-    const characterName = CHARACTER_NAMES[targetId as keyof typeof CHARACTER_NAMES];
-    const isVisible = visiblePosters.has(targetId);
-    const isCollected = collectedCharacters.has(characterName);
-
-    return (
-      <ViroARImageMarker
-        key={targetId}
-        target={targetId}
-        onAnchorFound={() => handleAnchorFound(targetId)}
-        onAnchorUpdated={() => handleAnchorUpdated(targetId)}
-      >
-        {/* Show checkmark if collected, otherwise show 3D model */}
-        {isVisible && (
-          <ViroNode position={[0, 0.35, 0]}>
-            {isCollected ? (
-              // Show checkmark for collected characters
-              <ViroNode transformBehaviors={["billboardY"]}>
-                <ViroText
-                  text="✓"
-                  scale={[0.5, 0.5, 0.5]}
-                  position={[0, 0, 0]}
-                  style={styles.checkmarkText}
-                  width={2}
-                  height={2}
-                />
-              </ViroNode>
-            ) : (
-              // Show 3D model for uncollected characters
-              <ViroNode transformBehaviors={["billboardY"]}>
-                <Viro3DObject
-                  source={config.model}
-                  type="GLB"
-                  scale={config.scale}
-                  rotation={config.rotation}
-                  position={[0, 0, 0]}
-                />
-              </ViroNode>
-            )}
-          </ViroNode>
-        )}
-      </ViroARImageMarker>
-    );
+  const handleAnchorUpdated = () => {
+    // Keep marker visible while tracking
+    if (!markerVisible) {
+      setMarkerVisible(true);
+    }
   };
 
   return (
     <ViroARScene>
-      {/* Lighting so things are visible */}
       <ViroAmbientLight color="#ffffff" intensity={500} />
       <ViroDirectionalLight
         color="#ffffff"
@@ -263,20 +151,42 @@ const PosterArScene: React.FC<PosterArSceneProps> = ({
         intensity={800}
       />
 
-      {/* Render all poster markers */}
-      {Object.values(POSTER_TARGET_IDS).map(targetId => renderPosterMarker(targetId))}
+      {/* Only render marker for the CURRENT target */}
+      <ViroARImageMarker
+        target={currentTarget.posterTargetName}
+        onAnchorFound={() => handleAnchorFound(currentTarget.posterTargetName)}
+        onAnchorUpdated={handleAnchorUpdated}
+      >
+        {markerVisible && (
+          <ViroNode position={[0, 0.08, 0]}>
+            <ViroNode transformBehaviors={["billboardY"]}>
+              <Viro3DObject
+                source={currentTarget.model}
+                type="GLB"
+                scale={currentTarget.scale}
+                rotation={currentTarget.rotation}
+                position={[0, 0, 0]}
+              />
+            </ViroNode>
+          </ViroNode>
+        )}
+      </ViroARImageMarker>
+
+      {/* Also scan other posters to detect wrong scans */}
+      {Object.values(POSTER_TARGET_IDS)
+        .filter(targetId => targetId !== currentTarget.posterTargetName)
+        .map(targetId => (
+          <ViroARImageMarker
+            key={targetId}
+            target={targetId}
+            onAnchorFound={() => handleAnchorFound(targetId)}
+          >
+            {/* No model rendered for wrong posters */}
+          </ViroARImageMarker>
+        ))
+      }
     </ViroARScene>
   );
 };
 
-const styles = {
-  checkmarkText: {
-    fontFamily: "Arial",
-    fontSize: 120,
-    color: "#22c55e",
-    textAlign: "center",
-    textAlignVertical: "center",
-  },
-};
-
-export default PosterArScene; 
+export default PosterArScene;

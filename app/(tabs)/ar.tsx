@@ -5,82 +5,85 @@ import React, { useCallback, useState } from "react";
 import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import PosterArScene from "../ar/posterArScene";
+import { QUEST_STOPS } from "../config/questStops";
+import { useGameStore } from "../store/useGameStore";
 
 const { width, height } = Dimensions.get("window");
-
-// Character configuration - must match CHARACTER_NAMES in posterArScene
-const CHARACTERS = [
-  { id: "flowerPoster", name: "Flower Spirit", shortName: "Flower" },
-  { id: "ghostPoster", name: "Ghost Friend", shortName: "Ghost" },
-  { id: "rockyPoster", name: "Rocky", shortName: "Rocky" },
-  { id: "teacherPoster", name: "Teacher", shortName: "Teacher" },
-];
 
 export default function ARScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const router = useRouter();
-  const [collectedCharacters, setCollectedCharacters] = useState<Set<string>>(new Set());
-  const [currentlyScanning, setCurrentlyScanning] = useState<string | null>(null);
-  const [dotCount, setDotCount] = useState(1);
+  const [wrongPosterError, setWrongPosterError] = useState<string | null>(null);
+  
+  // Game state from Zustand store
+  const { 
+    currentStepIndex, 
+    gamePhase, 
+    collectedMascots,
+    setGamePhase,
+    advanceToNextStep,
+    markMascotCollected,
+  } = useGameStore();
 
-  // Clear scanning state when component mounts (e.g., returning from chat)
-  React.useEffect(() => {
-    setCurrentlyScanning(null);
-  }, []);
+  // Derived data
+  const currentTarget = QUEST_STOPS[currentStepIndex];
+  const isGameComplete = gamePhase === "COMPLETED";
+  const totalStops = QUEST_STOPS.length;
+  const collectedCount = collectedMascots.length;
 
-  // Animated dots for scanning indicator
-  React.useEffect(() => {
-    if (!currentlyScanning) return;
+  // Handle when the correct poster is scanned
+  const handleScanSuccess = useCallback(() => {
+    console.log("[ARScreen] Correct poster scanned:", currentTarget.name);
+    setGamePhase("INTERACTING");
+  }, [currentTarget, setGamePhase]);
 
-    const interval = setInterval(() => {
-      setDotCount((prev) => (prev % 3) + 1);
-    }, 500);
-
-    return () => clearInterval(interval);
-  }, [currentlyScanning]);
-
-  const handlePosterFound = useCallback((characterName: string) => {
-    console.log("[ARScreen] Poster found:", characterName);
-    setCurrentlyScanning(characterName);
-    
-    // Mark as collected immediately when found
-    setCollectedCharacters((prev) => {
-      const newSet = new Set(prev);
-      newSet.add(characterName);
-      return newSet;
-    });
-  }, []);
-
-  const handlePosterLost = useCallback(() => {
-    console.log("[ARScreen] All posters lost");
-    setCurrentlyScanning(null);
-    setDotCount(1);
-  }, []);
-
-  const handleSpecificPosterLost = useCallback((characterName: string) => {
-    console.log("[ARScreen] Specific poster lost:", characterName);
-    // Only clear if this was the one we were scanning
-    setCurrentlyScanning((prev) => {
-      if (prev === characterName) {
-        setDotCount(1);
-        return null;
-      }
-      return prev;
-    });
-  }, []);
-
-  const handleCharacterTapped = useCallback((characterName: string, isCollected: boolean) => {
-    if (!isCollected) {
-      console.log("[ARScreen] Character not collected yet:", characterName);
-      return;
-    }
-    
-    console.log("[ARScreen] Navigating to Chat screen with:", characterName);
+  // Handle when a previously collected character is scanned
+  const handleCollectedCharacterScanned = useCallback((scannedId: string, scannedName: string) => {
+    console.log("[ARScreen] Previously collected character scanned:", scannedName);
+    // Show the character with just a Talk button (no Continue button)
     router.push({
       pathname: "/chat" as any,
-      params: { characterName },
+      params: { characterName: scannedName },
     });
   }, [router]);
+
+  // Handle when wrong poster is scanned
+  const handleScanFailure = useCallback((scannedName: string) => {
+    console.log("[ARScreen] Wrong poster scanned:", scannedName, "Expected:", currentTarget.name);
+    setWrongPosterError(`You can't talk to ${scannedName} yet. Try to find ${currentTarget.name}!`);
+    
+    // Clear error after 4 seconds
+    setTimeout(() => {
+      setWrongPosterError(null);
+    }, 4000);
+  }, [currentTarget]);
+
+  // Handle continuing to next quest step
+  const handleContinueQuest = useCallback(() => {
+    console.log("[ARScreen] Continuing quest from:", currentTarget.name);
+    
+    // Mark current mascot as collected
+    markMascotCollected(currentTarget.id);
+    
+    const nextStepIndex = currentStepIndex + 1;
+    
+    if (nextStepIndex < QUEST_STOPS.length) {
+      // Continue to next stop
+      advanceToNextStep();
+    } else {
+      // Game completed!
+      setGamePhase("COMPLETED");
+    }
+  }, [currentStepIndex, currentTarget, markMascotCollected, advanceToNextStep, setGamePhase]);
+
+  // Handle starting chat with character
+  const handleStartChat = useCallback(() => {
+    console.log("[ARScreen] Starting chat with:", currentTarget.name);
+    router.push({
+      pathname: "/chat" as any,
+      params: { characterName: currentTarget.name },
+    });
+  }, [currentTarget, router]);
 
   if (!permission) {
     return <View style={styles.container} />;
@@ -105,6 +108,27 @@ export default function ARScreen() {
     );
   }
 
+  if (isGameComplete) {
+    return (
+      <SafeAreaProvider>
+        <SafeAreaView style={styles.container}>
+          <View style={styles.completionContainer}>
+            <Text style={styles.completionTitle}>🎉 Quest Complete! 🎉</Text>
+            <Text style={styles.completionText}>
+              You collected all {totalStops} mascots!
+            </Text>
+            <TouchableOpacity
+              style={styles.chatButton}
+              onPress={() => router.push("/chat" as any)}
+            >
+              <Text style={styles.chatButtonText}>Visit Chat Screen</Text>
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+      </SafeAreaProvider>
+    );
+  }
+
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
@@ -112,75 +136,70 @@ export default function ARScreen() {
         <ViroARSceneNavigator
           autofocus
           style={styles.camera}
+          key={`ar-scene-${currentStepIndex}`}
           initialScene={{
             scene: () => (
               <PosterArScene 
-                onPosterFound={handlePosterFound}
-                onPosterLost={handlePosterLost}
-                onSpecificPosterLost={handleSpecificPosterLost}
-                collectedCharacters={collectedCharacters}
+                currentTarget={currentTarget}
+                gamePhase={gamePhase}
+                collectedMascots={collectedMascots}
+                onScanSuccess={handleScanSuccess}
+                onCollectedCharacterScanned={handleCollectedCharacterScanned}
+                onScanFailure={handleScanFailure}
               />
             ),
           }}
         />
 
-        {/* Collection buttons - 4 character slots */}
-        <View style={styles.rightButtons} pointerEvents="box-none">
-          {CHARACTERS.map((character) => {
-            const isCollected = collectedCharacters.has(character.name);
-            const isCurrentlyScanning = currentlyScanning === character.name;
-            
-            console.log(`[ARScreen] Character: ${character.name}, Collected: ${isCollected}, Scanning: ${isCurrentlyScanning}`);
-            
-            return (
-              <TouchableOpacity
-                key={character.id}
-                style={[
-                  styles.btn,
-                  isCollected && styles.btnCollected,
-                  isCurrentlyScanning && styles.btnScanning,
-                ]}
-                activeOpacity={0.7}
-                onPress={() => handleCharacterTapped(character.name, isCollected)}
-              >
-                {isCollected ? (
-                  <View style={styles.btnContent}>
-                    <Text style={styles.btnNameText}>{character.shortName}</Text>
-                    <Text style={styles.checkmark}>✓</Text>
-                  </View>
-                ) : (
-                  <Text style={styles.btnText}>mystery</Text>
-                )}
-              </TouchableOpacity>
-            );
-          })}
+        {/* Status box - top center */}
+        <View style={styles.statusBox}>
+          {gamePhase === "FINDING" && (
+            <>
+              <Text style={styles.statusTitle}>Finding {currentTarget.name}...</Text>
+              <Text style={styles.statusSub}>Look for the poster with your camera</Text>
+            </>
+          )}
+          {gamePhase === "INTERACTING" && (
+            <>
+              <Text style={styles.statusTitle}>You found {currentTarget.name}!</Text>
+              <Text style={styles.statusSub}>Talk to them or continue your quest</Text>
+            </>
+          )}
         </View>
 
-        {/* Scanning indicator */}
-        {currentlyScanning && (
-          <View style={styles.scanningIndicator}>
-            <View style={styles.scanningTextContainer}>
-              <Text style={styles.scanningText}>
-                Scanning: {currentlyScanning}
-              </Text>
-              <View style={styles.dotsContainer}>
-                <Text style={[styles.dot, dotCount >= 1 && styles.dotActive]}>•</Text>
-                <Text style={[styles.dot, dotCount >= 2 && styles.dotActive]}>•</Text>
-                <Text style={[styles.dot, dotCount >= 3 && styles.dotActive]}>•</Text>
-              </View>
-            </View>
-            <Text style={styles.scanningSubText}>
-              Tap on the right to chat →
-            </Text>
+        {/* Progress indicator - top right */}
+        <View style={styles.progressBox}>
+          <Text style={styles.progressText}>
+            {collectedCount} / {totalStops}
+          </Text>
+        </View>
+
+        {/* Wrong poster error message */}
+        {wrongPosterError && (
+          <View style={styles.errorBox}>
+            <Text style={styles.errorText}>{wrongPosterError}</Text>
           </View>
         )}
 
-        {/* Collection progress */}
-        <View style={styles.progressContainer}>
-          <Text style={styles.progressText}>
-            {collectedCharacters.size} / {CHARACTERS.length} collected
-          </Text>
-        </View>
+        {/* Action buttons - bottom center */}
+        {gamePhase === "INTERACTING" && (
+          <View style={styles.actionsContainer}>
+            <TouchableOpacity
+              style={[styles.actionButton, styles.chatActionButton]}
+              onPress={handleStartChat}
+            >
+              <Text style={styles.actionButtonText}>💬 Talk</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionButton, styles.continueActionButton]}
+              onPress={handleContinueQuest}
+            >
+              <Text style={styles.actionButtonText}>
+                {currentStepIndex < totalStops - 1 ? "→ Continue Quest" : "✓ Complete Quest"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </SafeAreaView>
     </SafeAreaProvider>
   );
@@ -195,67 +214,12 @@ const styles = StyleSheet.create({
     width,
     height,
   },
-  rightButtons: {
-    position: "absolute",
-    right: 12,
-    top: "30%",
-    height: 280,
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  btn: {
-    width: 70,
-    height: 60,
-    borderRadius: 12,
-    backgroundColor: "rgba(255,255,255,0.12)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
-    alignItems: "center",
-    justifyContent: "center",
-    marginVertical: 4,
-    paddingHorizontal: 4,
-  },
-  btnCollected: {
-    backgroundColor: "rgba(34, 197, 94, 0.2)",
-    borderColor: "rgba(34, 197, 94, 0.5)",
-  },
-  btnScanning: {
-    backgroundColor: "rgba(59, 130, 246, 0.3)",
-    borderColor: "rgba(59, 130, 246, 0.8)",
-    borderWidth: 2,
-  },
-  btnContent: {
-    width: "100%",
-    height: "100%",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  btnText: {
-    color: "#888",
-    fontSize: 11,
-    textTransform: "lowercase",
-    fontWeight: "500",
-  },
-  btnNameText: {
-    color: "#fff",
-    fontSize: 10,
-    fontWeight: "600",
-    textAlign: "center",
-    lineHeight: 12,
-  },
-  checkmark: {
-    position: "absolute",
-    bottom: 2,
-    right: 2,
-    color: "#22c55e",
-    fontSize: 14,
-    fontWeight: "bold",
-  },
   permissionContainer: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
     padding: 20,
+    backgroundColor: "#0f172a",
   },
   permissionText: {
     color: "#fff",
@@ -279,60 +243,124 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-  scanningIndicator: {
+  completionContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 20,
+    backgroundColor: "#0f172a",
+  },
+  completionTitle: {
+    color: "#fff",
+    fontSize: 32,
+    fontWeight: "bold",
+    marginBottom: 16,
+    textAlign: "center",
+  },
+  completionText: {
+    color: "#ccc",
+    fontSize: 18,
+    marginBottom: 32,
+    textAlign: "center",
+  },
+  chatButton: {
+    backgroundColor: "#2563eb",
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 12,
+  },
+  chatButtonText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "700",
+  },
+  statusBox: {
     position: "absolute",
     top: 60,
     left: 20,
+    right: 80,
+    backgroundColor: "rgba(15, 23, 42, 0.95)",
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: "rgba(59, 130, 246, 0.5)",
+  },
+  statusTitle: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: 4,
+  },
+  statusSub: {
+    color: "#94a3b8",
+    fontSize: 13,
+  },
+  progressBox: {
+    position: "absolute",
+    top: 60,
     right: 20,
-    backgroundColor: "rgba(59, 130, 246, 0.9)",
-    paddingVertical: 10,
+    backgroundColor: "rgba(15, 23, 42, 0.95)",
+    paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 12,
-    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "rgba(34, 197, 94, 0.5)",
   },
-  scanningTextContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  scanningText: {
-    color: "#fff",
+  progressText: {
+    color: "#22c55e",
     fontSize: 16,
     fontWeight: "700",
   },
-  dotsContainer: {
-    flexDirection: "row",
-    marginLeft: 4,
-    width: 30,
+  errorBox: {
+    position: "absolute",
+    top: 140,
+    left: 20,
+    right: 20,
+    backgroundColor: "rgba(239, 68, 68, 0.95)",
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: "rgba(220, 38, 38, 0.8)",
+    alignItems: "center",
   },
-  dot: {
-    color: "rgba(255, 255, 255, 0.3)",
-    fontSize: 20,
-    fontWeight: "bold",
-    marginHorizontal: 1,
-  },
-  dotActive: {
+  errorText: {
     color: "#fff",
+    fontSize: 16,
+    fontWeight: "700",
+    textAlign: "center",
   },
-  scanningSubText: {
-    color: "rgba(255, 255, 255, 0.9)",
-    fontSize: 12,
-    fontWeight: "500",
-    marginTop: 2,
-  },
-  progressContainer: {
+  actionsContainer: {
     position: "absolute",
     bottom: 40,
     left: 20,
     right: 20,
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 12,
+  },
+  actionButton: {
+    flex: 1,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
     borderRadius: 12,
     alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
-  progressText: {
+  chatActionButton: {
+    backgroundColor: "#8b5cf6",
+  },
+  continueActionButton: {
+    backgroundColor: "#2563eb",
+  },
+  actionButtonText: {
     color: "#fff",
-    fontSize: 14,
-    fontWeight: "600",
+    fontSize: 16,
+    fontWeight: "700",
   },
 });
