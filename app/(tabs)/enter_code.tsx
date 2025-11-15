@@ -19,8 +19,6 @@ export default function CodeInputScreen() {
             return;
         }
         router.push({ pathname: '/lobby', params: { code } });
-
-        Alert.alert('Success', `Code entered: ${code}`);
     };
 
     return (
