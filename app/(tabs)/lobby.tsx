@@ -25,11 +25,6 @@ export default function LobbyScreen() {
     ]);
     const [nameAdded, setNameAdded] = useState(false);
 
-    const [fontsLoaded] = useFonts({
-        pix: require('../../assets/fonts/pix.ttf'),
-    });
-
-    if (!fontsLoaded) return null;
 
     const handleJoin = () => {
         if (!name.trim()) return;
