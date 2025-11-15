@@ -8,6 +8,7 @@ import {
   ViroAmbientLight,
   ViroDirectionalLight,
   ViroNode,
+  ViroText,
 } from "@reactvision/react-viro";
 import React, { useEffect, useRef, useState } from "react";
 import { POSTER_TARGET_IDS } from "./posterTargets";
@@ -84,80 +85,133 @@ const POSTER_CONFIGS = {
 type PosterArSceneProps = {
   onPosterFound?: (characterName: string) => void;
   onPosterLost?: () => void;
+  collectedCharacters?: Set<string>;
 };
 
-const PosterArScene: React.FC<PosterArSceneProps> = ({ onPosterFound, onPosterLost }) => {
+const PosterArScene: React.FC<PosterArSceneProps> = ({ 
+  onPosterFound, 
+  onPosterLost,
+  collectedCharacters = new Set(),
+}) => {
   const [visiblePosters, setVisiblePosters] = useState<Set<string>>(new Set());
-  const lastSeenRef = useRef<{ [key: string]: number }>({});
-  const notifiedPosters = useRef<Set<string>>(new Set());
+  const [isTracking, setIsTracking] = useState<{ [key: string]: boolean }>({});
+  const hideTimeoutsRef = useRef<{ [key: string]: NodeJS.Timeout }>({});
 
-  // How long we tolerate no updates before hiding (ms)
-  const HIDE_DELAY_MS = 700;
+  // Much shorter debounce now that we have proper tracking state
+  const HIDE_DEBOUNCE_MS = 3000; // 3 seconds
+
+  const clearHideTimeout = (posterName: string) => {
+    if (hideTimeoutsRef.current[posterName]) {
+      clearTimeout(hideTimeoutsRef.current[posterName]);
+      delete hideTimeoutsRef.current[posterName];
+    }
+  };
+
+  const scheduleHide = (posterName: string) => {
+    clearHideTimeout(posterName);
+    
+    hideTimeoutsRef.current[posterName] = setTimeout(() => {
+      console.log(`[PosterArScene] ${posterName}: No activity for ${HIDE_DEBOUNCE_MS}ms → hiding`);
+      
+      setIsTracking((prev) => {
+        const newTracking = { ...prev };
+        delete newTracking[posterName];
+        return newTracking;
+      });
+      
+      let shouldCallLost = false;
+      
+      setVisiblePosters((prev) => {
+        if (!prev.has(posterName)) return prev;
+        
+        const newSet = new Set(prev);
+        newSet.delete(posterName);
+        
+        // Check if we should call onPosterLost
+        if (newSet.size === 0 && prev.size > 0) {
+          shouldCallLost = true;
+          console.log("[PosterArScene] Marking to call onPosterLost");
+        }
+        
+        return newSet;
+      });
+      
+      // Call onPosterLost outside of setState
+      if (shouldCallLost) {
+        console.log("[PosterArScene] No posters visible → calling onPosterLost");
+        setTimeout(() => {
+          console.log("[PosterArScene] Actually calling onPosterLost callback");
+          onPosterLost?.();
+        }, 0);
+      }
+      
+      delete hideTimeoutsRef.current[posterName];
+    }, HIDE_DEBOUNCE_MS);
+  };
 
   const handleAnchorFound = (posterName: string) => {
     console.log(`[PosterArScene] ${posterName} poster detected (onAnchorFound)`);
     
-    setVisiblePosters((prev) => new Set(prev).add(posterName));
-    lastSeenRef.current[posterName] = Date.now();
+    clearHideTimeout(posterName);
     
-    // Notify parent about character found
-    if (!notifiedPosters.current.has(posterName)) {
-      notifiedPosters.current.add(posterName);
+    setIsTracking((prev) => ({ ...prev, [posterName]: true }));
+    
+    const wasNotVisible = !visiblePosters.has(posterName);
+    
+    setVisiblePosters((prev) => {
+      if (!prev.has(posterName)) {
+        return new Set(prev).add(posterName);
+      }
+      return prev;
+    });
+    
+    if (wasNotVisible) {
       const characterName = CHARACTER_NAMES[posterName as keyof typeof CHARACTER_NAMES];
       onPosterFound?.(characterName);
+      console.log(`[PosterArScene] Notifying parent: ${characterName} found`);
     }
+    
+    // Schedule initial hide
+    scheduleHide(posterName);
   };
 
   const handleAnchorUpdated = (posterName: string) => {
-    // This is called repeatedly while ARKit is tracking the marker
-    lastSeenRef.current[posterName] = Date.now();
+    // Mark as actively tracking and reset the hide timer
+    setIsTracking((prev) => ({ ...prev, [posterName]: true }));
     
-    if (!visiblePosters.has(posterName)) {
-      console.log(`[PosterArScene] ${posterName} back in view (onAnchorUpdated)`);
-      setVisiblePosters((prev) => new Set(prev).add(posterName));
-    }
+    clearHideTimeout(posterName);
+    scheduleHide(posterName);
+    
+    setVisiblePosters((prev) => {
+      if (!prev.has(posterName)) {
+        return new Set(prev).add(posterName);
+      }
+      return prev;
+    });
   };
 
-  // Background timer: hide markers if we haven't seen them for a while
+  // Keepalive: Monitor tracking state and clear it if no updates
   useEffect(() => {
     const interval = setInterval(() => {
-      const now = Date.now();
-
-      setVisiblePosters((prev) => {
-        const newSet = new Set(prev);
-        let changed = false;
-
-        prev.forEach((posterName) => {
-          const lastSeen = lastSeenRef.current[posterName];
-          if (!lastSeen) return;
-
-          const elapsed = now - lastSeen;
-          if (elapsed > HIDE_DELAY_MS) {
-            console.log(
-              `[PosterArScene] ${posterName}: No updates for ${elapsed}ms → hiding`
-            );
-            newSet.delete(posterName);
-            notifiedPosters.current.delete(posterName);
-            changed = true;
-          }
+      // Reset all tracking flags - they'll be set back to true by onAnchorUpdated if still tracking
+      setIsTracking((prev) => {
+        const newTracking: { [key: string]: boolean } = {};
+        Object.keys(prev).forEach((posterName) => {
+          // Set to false - will be set back to true if onAnchorUpdated fires
+          newTracking[posterName] = false;
         });
-
-        // Call onPosterLost if no posters are visible
-        if (changed && newSet.size === 0) {
-          console.log("[PosterArScene] No posters visible → calling onPosterLost");
-          onPosterLost?.();
-        }
-
-        return changed ? newSet : prev;
+        return newTracking;
       });
-    }, 200); // check 5x/sec
+    }, 1000); // Check every second
 
     return () => clearInterval(interval);
-  }, [onPosterLost]);
+  }, []);
 
   const renderPosterMarker = (targetId: string) => {
     const config = POSTER_CONFIGS[targetId as keyof typeof POSTER_CONFIGS];
+    const characterName = CHARACTER_NAMES[targetId as keyof typeof CHARACTER_NAMES];
     const isVisible = visiblePosters.has(targetId);
+    const isCollected = collectedCharacters.has(characterName);
 
     return (
       <ViroARImageMarker
@@ -166,18 +220,33 @@ const PosterArScene: React.FC<PosterArSceneProps> = ({ onPosterFound, onPosterLo
         onAnchorFound={() => handleAnchorFound(targetId)}
         onAnchorUpdated={() => handleAnchorUpdated(targetId)}
       >
-        {/* Only render 3D model when poster is actively tracked */}
+        {/* Show checkmark if collected, otherwise show 3D model */}
         {isVisible && (
-          <ViroNode position={[0, 0.08, 0]}>
-            <ViroNode transformBehaviors={["billboardY"]}>
-              <Viro3DObject
-                source={config.model}
-                type="GLB"
-                scale={config.scale}
-                rotation={config.rotation}
-                position={[0, 0, 0]}
-              />
-            </ViroNode>
+          <ViroNode position={[0, 0.35, 0]}>
+            {isCollected ? (
+              // Show checkmark for collected characters
+              <ViroNode transformBehaviors={["billboardY"]}>
+                <ViroText
+                  text="✓"
+                  scale={[0.5, 0.5, 0.5]}
+                  position={[0, 0, 0]}
+                  style={styles.checkmarkText}
+                  width={2}
+                  height={2}
+                />
+              </ViroNode>
+            ) : (
+              // Show 3D model for uncollected characters
+              <ViroNode transformBehaviors={["billboardY"]}>
+                <Viro3DObject
+                  source={config.model}
+                  type="GLB"
+                  scale={config.scale}
+                  rotation={config.rotation}
+                  position={[0, 0, 0]}
+                />
+              </ViroNode>
+            )}
           </ViroNode>
         )}
       </ViroARImageMarker>
@@ -200,4 +269,14 @@ const PosterArScene: React.FC<PosterArSceneProps> = ({ onPosterFound, onPosterLo
   );
 };
 
-export default PosterArScene;
+const styles = {
+  checkmarkText: {
+    fontFamily: "Arial",
+    fontSize: 120,
+    color: "#22c55e",
+    textAlign: "center",
+    textAlignVertical: "center",
+  },
+};
+
+export default PosterArScene; 
