@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, StatusBar, ImageBackground, TextInput, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, StyleSheet, StatusBar, ImageBackground, TextInput, TouchableOpacity, ScrollView, Image } from "react-native";
 import Header from "@/components/ui/header";
-import { Image } from "react-native";
+import { useLocalSearchParams } from "expo-router";
+import { startVapiCall } from "@/lib/vapi";
 const getAIResponse = async (prompt: string) => {
   return `NPC Response for prompt: "${prompt}"`;
 };
@@ -13,6 +14,11 @@ type Message = {
 };
 
 const ChatScreen: React.FC = () => {
+  const params = useLocalSearchParams<{ characterName?: string }>();
+  const activeCharacterName =
+    typeof params.characterName === "string" && params.characterName.length > 0
+      ? params.characterName
+      : "Rocky";
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
 
@@ -26,6 +32,10 @@ const ChatScreen: React.FC = () => {
     const aiText = await getAIResponse(input);
     const aiMessage: Message = { id: Date.now().toString() + "_ai", text: aiText, fromUser: false };
     setMessages(prev => [...prev, aiMessage]);
+  };
+
+  const handleVoiceChat = () => {
+    startVapiCall(activeCharacterName);
   };
 
   return (
@@ -59,6 +69,10 @@ const ChatScreen: React.FC = () => {
             </View>
           ))}
         </ScrollView>
+
+        <TouchableOpacity style={styles.voiceButton} onPress={handleVoiceChat}>
+          <Text style={styles.voiceButtonText}>🎤 Talk with {activeCharacterName}</Text>
+        </TouchableOpacity>
 
         <View style={styles.inputContainer}>
           {input.length === 0 && (
@@ -133,6 +147,20 @@ const styles = StyleSheet.create({
     color: "#000",
     fontFamily: 'Vt',
     fontSize: 25,
+  },
+  voiceButton: {
+    backgroundColor: "#8b5cf6",
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: "center",
+    marginBottom: 16,
+    borderWidth: 2.5,
+    borderColor: "#000",
+  },
+  voiceButtonText: {
+    color: "#fff",
+    fontFamily: "Vt",
+    fontSize: 22,
   },
   inputContainer: {
     flexDirection: "row",
