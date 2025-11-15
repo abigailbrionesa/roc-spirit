@@ -17,7 +17,7 @@ export const QUEST_STOPS: QuestStop[] = [
     name: "Rocky",
     posterTargetName: POSTER_TARGET_IDS.ROCKY,
     model: require("../../assets/models/Rocky3.glb"),
-    video: require("../../assets/videos/rocky.mp4"), // NEW: Add your video
+    video: require("../../assets/videos/rockyfinalvideo.mp4"),
     scale: [0.05, 0.05, 0.05],
     rotation: [0, 180, 0],
   },
@@ -26,7 +26,7 @@ export const QUEST_STOPS: QuestStop[] = [
     name: "Ghost Friend",
     posterTargetName: POSTER_TARGET_IDS.GHOST,
     model: require("../../assets/models/ghost_ur.glb"),
-    video: require("../../assets/videos/test.mp4"), // NEW
+    video: require("../../assets/videos/ghostfinalvideo.mp4"),
     scale: [0.05, 0.05, 0.05],
     rotation: [0, 0, 0],
   },
@@ -35,7 +35,7 @@ export const QUEST_STOPS: QuestStop[] = [
     name: "Flower Spirit",
     posterTargetName: POSTER_TARGET_IDS.FLOWER,
     model: require("../../assets/models/flower.glb"),
-    video: require("../../assets/videos/test.mp4"), // NEW
+    video: require("../../assets/videos/flowerfinalvideo.mp4"),
     scale: [0.05, 0.05, 0.05],
     rotation: [0, 180, 0],
   },
@@ -44,7 +44,7 @@ export const QUEST_STOPS: QuestStop[] = [
     name: "Teacher",
     posterTargetName: POSTER_TARGET_IDS.TEACHER,
     model: require("../../assets/models/teacher.glb"),
-    video: require("../../assets/videos/test.mp4"), // NEW
+    video: require("../../assets/videos/teacherfinalvideo.mp4"),
     scale: [0.6, 0.6, 0.6],
     rotation: [0, 0, 0],
   },

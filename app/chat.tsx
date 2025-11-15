@@ -1,21 +1,23 @@
 // app/chat.tsx
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  StatusBar,
-  TextInput,
-  TouchableOpacity,
-  ScrollView,
-  Image,
-  Platform,
-  KeyboardAvoidingView,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useLocalSearchParams } from "expo-router";
 import Header from "@/components/ui/header";
 import { BlurView } from "expo-blur";
+import { useLocalSearchParams } from "expo-router";
+import React, { useState } from "react";
+import {
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import CharacterModelView from "../components/CharacterModelView";
+
 
 type Message = {
   id: string;
@@ -88,14 +90,13 @@ export default function ChatScreen() {
           {/* 3D MODEL / AVATAR AREA */}
           <View style={styles.modelContainer}>
             {/* TODO: Replace this with your actual 3D model component */}
-            <View style={styles.modelInner}>
+             <View style={styles.modelHeader}>
               <Text style={styles.modelTitle}>{displayName}</Text>
-              <Text style={styles.modelSubtitle}>
-                {/* You can use characterId here to decide which model to render */}
-                {/* Example: render <MascotModel characterId={characterId} /> */}
-                3D character view goes here
-              </Text>
+              <Text style={styles.modelSubtitle}>They’re here to chat with you.</Text>
             </View>
+
+            {/* Actual 3D model */}
+            <CharacterModelView characterName={characterName} />
           </View>
 
           {/* CHAT AREA (like original chatScreen) */}
@@ -169,11 +170,9 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(15,23,42,0.85)",
     overflow: "hidden",
   },
-  modelInner: {
-    height: 220,
-    justifyContent: "center",
-    alignItems: "center",
+  modelHeader: {
     paddingHorizontal: 16,
+    paddingVertical: 10,
   },
   modelTitle: {
     color: "#fff",
@@ -181,10 +180,9 @@ const styles = StyleSheet.create({
     fontFamily: "Vt",
   },
   modelSubtitle: {
-    marginTop: 8,
+    marginTop: 4,
     color: "#e5e7eb",
     fontSize: 14,
-    textAlign: "center",
   },
 
   // === CHAT CARD (bottom) – based on chatScreen ===
@@ -265,4 +263,5 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
   },
+  
 });
