@@ -41,11 +41,14 @@ const HomeScreen = () => {
           resizeMode="contain"
         />
         <View style={styles.buttonContainer}>
-          <Image
-            source={require('../../assets/startbutton.png')}
-            style={styles.button}
-            resizeMode="contain"
-          />
+          <TouchableOpacity onPress={() => router.push('/enter_code')}>
+
+            <Image
+              source={require('../../assets/startbutton.png')}
+              style={styles.button}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push('/menu')}>
             <Image
               source={require('../../assets/menubutton.png')}
