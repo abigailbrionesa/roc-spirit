@@ -35,7 +35,7 @@ export default function LeaderboardScreen() {
             style={styles.background}
             resizeMode="cover"
         >
-            <SafeAreaView style={{ flex: 1 }}>
+            <View style={{ flex: 1 }}>
 
                 <Header
                     title="Leaderboard"
@@ -50,7 +50,7 @@ export default function LeaderboardScreen() {
                     contentContainerStyle={styles.list}
                 />
 
-            </SafeAreaView>
+            </View>
         </ImageBackground>
     );
 }
