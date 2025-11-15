@@ -1,83 +1,267 @@
 // app/chat.tsx
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import Header from "@/components/ui/header";
+import { BlurView } from "expo-blur";
+import { useLocalSearchParams } from "expo-router";
+import React, { useState } from "react";
+import {
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import CharacterModelView from "../components/CharacterModelView";
+
+
+type Message = {
+  id: string;
+  text: string;
+  fromUser: boolean;
+};
+
+// TEMP: stub AI – replace with Vapi later
+const getAIResponse = async (prompt: string) => {
+  return `NPC Response for prompt: "${prompt}"`;
+};
 
 export default function ChatScreen() {
-  const router = useRouter();
-  const { characterName } = useLocalSearchParams<{ characterName?: string }>();
+  const { characterName, characterId } =
+    useLocalSearchParams<{ characterName?: string; characterId?: string }>();
 
   const displayName = characterName || "Character";
 
-  return (
-    <SafeAreaProvider>
-      <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <Text style={styles.backButtonText}>← Back</Text>
-          </TouchableOpacity>
-          <Text style={styles.title}>Chat with {displayName}</Text>
-        </View>
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState("");
 
-        <View style={styles.content}>
-          <Text style={styles.placeholder}>
-            Chatting with {displayName}
-          </Text>
-          <Text style={styles.subtext}>
-            This is a normal React Native screen with no camera or AR.
-          </Text>
-        </View>
+  const sendMessage = async () => {
+    if (!input.trim()) return;
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      text: input,
+      fromUser: true,
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    const prompt = input;
+    setInput("");
+
+    // Fake AI response for now
+    const aiText = await getAIResponse(prompt);
+    const aiMessage: Message = {
+      id: Date.now().toString() + "_ai",
+      text: aiText,
+      fromUser: false,
+    };
+
+    setMessages(prev => [...prev, aiMessage]);
+  };
+
+  return (
+    <View style={styles.root}>
+      {/* This sits above the AR camera; BlurView adds the "frosted" effect */}
+      <BlurView
+        intensity={40}
+        tint="dark"
+        style={StyleSheet.absoluteFill}
+      />
+
+      <StatusBar
+        backgroundColor="transparent"
+        barStyle="light-content"
+        translucent
+      />
+
+      <SafeAreaView style={styles.safeArea}>
+        {/* Same header & back behavior as chatScreen */}
+        <Header title={`Chat with ${displayName}`} />
+
+        <KeyboardAvoidingView
+          style={styles.contentWrapper}
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+        >
+          {/* 3D MODEL / AVATAR AREA */}
+          <View style={styles.modelContainer}>
+            {/* TODO: Replace this with your actual 3D model component */}
+             <View style={styles.modelHeader}>
+              <Text style={styles.modelTitle}>{displayName}</Text>
+              <Text style={styles.modelSubtitle}>They’re here to chat with you.</Text>
+            </View>
+
+            {/* Actual 3D model */}
+            <CharacterModelView characterName={characterName} />
+          </View>
+
+          {/* CHAT AREA (like original chatScreen) */}
+          <View style={styles.chatCard}>
+            <ScrollView
+              contentContainerStyle={styles.messagesContainer}
+              showsVerticalScrollIndicator={false}
+            >
+              {messages.map(msg => (
+                <View
+                  key={msg.id}
+                  style={[
+                    styles.bubble,
+                    msg.fromUser ? styles.userBubble : styles.npcBubble,
+                  ]}
+                >
+                  <Text style={styles.bubbleText}>{msg.text}</Text>
+                </View>
+              ))}
+            </ScrollView>
+
+            <View style={styles.inputContainer}>
+              {input.length === 0 && (
+                <Text style={styles.placeholder}>Type your message...</Text>
+              )}
+              <TextInput
+                style={styles.input}
+                value={input}
+                onChangeText={setInput}
+                selectionColor="#000"
+                returnKeyType="send"
+                onSubmitEditing={sendMessage}
+              />
+              <TouchableOpacity onPress={sendMessage} style={styles.sendButton}>
+                <Image
+                  source={require("../assets/sendbutton.png")}
+                  resizeMode="contain"
+                  style={styles.sendImage}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
       </SafeAreaView>
-    </SafeAreaProvider>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  root: {
     flex: 1,
-    backgroundColor: '#0f172a',
+    // Important so AR shows behind it when using transparent/modal presentation
+    backgroundColor: "transparent",
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.1)',
+  safeArea: {
+    flex: 1,
   },
-  backButton: {
+  contentWrapper: {
+    flex: 1,
+    paddingHorizontal: 16,
+    justifyContent: "flex-end",
+  },
+
+  // === 3D MODEL AREA (top) ===
+  modelContainer: {
+    marginTop: 8,
+    marginBottom: 12,
+    borderRadius: 20,
+    borderWidth: 2.5,
+    borderColor: "#9ca3af",
+    backgroundColor: "rgba(15,23,42,0.85)",
+    overflow: "hidden",
+  },
+  modelHeader: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  modelTitle: {
+    color: "#fff",
+    fontSize: 26,
+    fontFamily: "Vt",
+  },
+  modelSubtitle: {
+    marginTop: 4,
+    color: "#e5e7eb",
+    fontSize: 14,
+  },
+
+  // === CHAT CARD (bottom) – based on chatScreen ===
+  chatCard: {
+    flex: 1,
+    borderRadius: 20,
+    borderWidth: 2.5,
+    borderColor: "#9ca3af",
+    backgroundColor: "rgba(15,23,42,0.95)",
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-  },
-  backButtonText: {
-    color: '#60a5fa',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  title: {
-    flex: 1,
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginLeft: 16,
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  placeholder: {
-    color: '#e5e7eb',
-    fontSize: 18,
-    textAlign: 'center',
+    paddingTop: 8,
+    paddingBottom: 8,
     marginBottom: 12,
   },
-  subtext: {
-    color: '#9ca3af',
-    fontSize: 14,
-    textAlign: 'center',
+  messagesContainer: {
+    paddingBottom: 16,
   },
+  bubble: {
+    maxWidth: "70%",
+    padding: 12,
+    marginVertical: 5,
+  },
+  userBubble: {
+    backgroundColor: "white",
+    alignSelf: "flex-end",
+    borderWidth: 2.5,
+    borderColor: "#000",
+    borderTopLeftRadius: 15,
+    borderTopRightRadius: 0,
+    borderBottomLeftRadius: 15,
+    borderBottomRightRadius: 15,
+  },
+  npcBubble: {
+    backgroundColor: "white",
+    alignSelf: "flex-start",
+    borderWidth: 2.5,
+    borderColor: "#000",
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 15,
+    borderBottomLeftRadius: 15,
+    borderBottomRightRadius: 15,
+  },
+  bubbleText: {
+    color: "#000",
+    fontFamily: "Vt",
+    fontSize: 18,
+  },
+
+  // === INPUT AREA (same feel as chatScreen) ===
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 5,
+    marginTop: 8,
+    borderWidth: 2.5,
+    borderColor: "#9ca3af",
+    backgroundColor: "white",
+  },
+  input: {
+    flex: 1,
+    color: "#111827",
+    fontSize: 20,
+    fontFamily: "Vt",
+    paddingHorizontal: 20,
+  },
+  placeholder: {
+    position: "absolute",
+    left: 20,
+    color: "#9ca3af",
+    fontSize: 20,
+    fontFamily: "Vt",
+  },
+  sendButton: {
+    marginLeft: 8,
+    padding: 10,
+  },
+  sendImage: {
+    width: 40,
+    height: 40,
+  },
+  
 });

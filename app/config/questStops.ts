@@ -1,6 +1,4 @@
 // app/config/questStops.ts
-// This defines the entire sequential quest path
-
 import { POSTER_TARGET_IDS } from "../ar/posterTargets";
 
 export type QuestStop = {
@@ -8,10 +6,9 @@ export type QuestStop = {
   name: string;
   posterTargetName: string;
   model: any;
+  video: any; // NEW: Add video field
   scale: [number, number, number];
   rotation: [number, number, number];
-  // Optional: Add map coordinates if you implement map navigation
-  // mapCoords?: { lat: number; lon: number };
 };
 
 export const QUEST_STOPS: QuestStop[] = [
@@ -20,6 +17,7 @@ export const QUEST_STOPS: QuestStop[] = [
     name: "Rocky",
     posterTargetName: POSTER_TARGET_IDS.ROCKY,
     model: require("../../assets/models/Rocky3.glb"),
+    video: require("../../assets/videos/rockyfinalvideo.mp4"),
     scale: [0.05, 0.05, 0.05],
     rotation: [0, 180, 0],
   },
@@ -28,6 +26,7 @@ export const QUEST_STOPS: QuestStop[] = [
     name: "Ghost Friend",
     posterTargetName: POSTER_TARGET_IDS.GHOST,
     model: require("../../assets/models/ghost_ur.glb"),
+    video: require("../../assets/videos/ghostfinalvideo.mp4"),
     scale: [0.05, 0.05, 0.05],
     rotation: [0, 0, 0],
   },
@@ -36,6 +35,7 @@ export const QUEST_STOPS: QuestStop[] = [
     name: "Flower Spirit",
     posterTargetName: POSTER_TARGET_IDS.FLOWER,
     model: require("../../assets/models/flower.glb"),
+    video: require("../../assets/videos/flowerfinalvideo.mp4"),
     scale: [0.05, 0.05, 0.05],
     rotation: [0, 180, 0],
   },
@@ -44,6 +44,7 @@ export const QUEST_STOPS: QuestStop[] = [
     name: "Teacher",
     posterTargetName: POSTER_TARGET_IDS.TEACHER,
     model: require("../../assets/models/teacher.glb"),
+    video: require("../../assets/videos/teacherfinalvideo.mp4"),
     scale: [0.6, 0.6, 0.6],
     rotation: [0, 0, 0],
   },
