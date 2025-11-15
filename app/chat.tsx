@@ -18,7 +18,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import CharacterModelView from "../components/CharacterModelView";
 
-
 type Message = {
   id: string;
   text: string;
@@ -52,7 +51,6 @@ export default function ChatScreen() {
     const prompt = input;
     setInput("");
 
-    // Fake AI response for now
     const aiText = await getAIResponse(prompt);
     const aiMessage: Message = {
       id: Date.now().toString() + "_ai",
@@ -65,12 +63,8 @@ export default function ChatScreen() {
 
   return (
     <View style={styles.root}>
-      {/* This sits above the AR camera; BlurView adds the "frosted" effect */}
-      <BlurView
-        intensity={40}
-        tint="dark"
-        style={StyleSheet.absoluteFill}
-      />
+      {/* Blurred AR camera behind */}
+      <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
 
       <StatusBar
         backgroundColor="transparent"
@@ -79,45 +73,56 @@ export default function ChatScreen() {
       />
 
       <SafeAreaView style={styles.safeArea}>
-        {/* Same header & back behavior as chatScreen */}
         <Header title={`Chat with ${displayName}`} />
 
         <KeyboardAvoidingView
           style={styles.contentWrapper}
           behavior={Platform.OS === "ios" ? "padding" : undefined}
-          keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
         >
-          {/* 3D MODEL / AVATAR AREA */}
-          <View style={styles.modelContainer}>
-            {/* TODO: Replace this with your actual 3D model component */}
-             <View style={styles.modelHeader}>
-              <Text style={styles.modelTitle}>{displayName}</Text>
-              <Text style={styles.modelSubtitle}>They’re here to chat with you.</Text>
-            </View>
+          {/* Main content: model + messages */}
+          <View style={styles.mainContent}>
+            <View style={styles.topRow}>
+              {/* LEFT: model in white card */}
+              <View style={styles.leftModelColumn}>
+                <View style={styles.modelCard}>
+                  <View style={styles.modelHeader}>
+                    <Text style={styles.modelTitle}>{displayName}</Text>
+                    <Text style={styles.modelSubtitle}>
+                      They’re here to chat with you.
+                    </Text>
+                  </View>
+                  <CharacterModelView characterName={characterName} />
+                </View>
+              </View>
 
-            {/* Actual 3D model */}
-            <CharacterModelView characterName={characterName} />
+              {/* RIGHT: messages list */}
+              <View style={styles.rightMessagesColumn}>
+                <View style={styles.chatCardInner}>
+                  <ScrollView
+                    contentContainerStyle={styles.messagesContainer}
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
+                  >
+                    {messages.map(msg => (
+                      <View
+                        key={msg.id}
+                        style={[
+                          styles.bubble,
+                          msg.fromUser ? styles.userBubble : styles.npcBubble,
+                        ]}
+                      >
+                        <Text style={styles.bubbleText}>{msg.text}</Text>
+                      </View>
+                    ))}
+                  </ScrollView>
+                </View>
+              </View>
+            </View>
           </View>
 
-          {/* CHAT AREA (like original chatScreen) */}
+          {/* Bottom: input bar (stays pinned near bottom) */}
           <View style={styles.chatCard}>
-            <ScrollView
-              contentContainerStyle={styles.messagesContainer}
-              showsVerticalScrollIndicator={false}
-            >
-              {messages.map(msg => (
-                <View
-                  key={msg.id}
-                  style={[
-                    styles.bubble,
-                    msg.fromUser ? styles.userBubble : styles.npcBubble,
-                  ]}
-                >
-                  <Text style={styles.bubbleText}>{msg.text}</Text>
-                </View>
-              ))}
-            </ScrollView>
-
             <View style={styles.inputContainer}>
               {input.length === 0 && (
                 <Text style={styles.placeholder}>Type your message...</Text>
@@ -148,7 +153,6 @@ export default function ChatScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    // Important so AR shows behind it when using transparent/modal presentation
     backgroundColor: "transparent",
   },
   safeArea: {
@@ -157,36 +161,56 @@ const styles = StyleSheet.create({
   contentWrapper: {
     flex: 1,
     paddingHorizontal: 16,
-    justifyContent: "flex-end",
+    paddingBottom: 8,
+  },
+  mainContent: {
+    flex: 1,
+    marginTop: 8,
+    marginBottom: 8,
   },
 
-  // === 3D MODEL AREA (top) ===
-  modelContainer: {
-    marginTop: 8,
-    marginBottom: 12,
+  // === 3D MODEL AREA ===
+  topRow: {
+    flexDirection: "row",
+    width: "100%",
+    alignItems: "flex-start",
+    flex: 1,
+  },
+  leftModelColumn: {
+    width: "48%",
+    paddingRight: 8,
+  },
+  rightMessagesColumn: {
+    width: "52%",
+    paddingLeft: 8,
+  },
+  modelCard: {
+    flex: 1,
     borderRadius: 20,
     borderWidth: 2.5,
     borderColor: "#9ca3af",
-    backgroundColor: "rgba(15,23,42,0.85)",
+    backgroundColor: "#ffffff", // white background behind model
     overflow: "hidden",
   },
   modelHeader: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e5e7eb",
   },
   modelTitle: {
-    color: "#fff",
-    fontSize: 26,
+    color: "#000",
+    fontSize: 20,
     fontFamily: "Vt",
   },
   modelSubtitle: {
-    marginTop: 4,
-    color: "#e5e7eb",
-    fontSize: 14,
+    marginTop: 2,
+    color: "#4b5563",
+    fontSize: 12,
   },
 
-  // === CHAT CARD (bottom) – based on chatScreen ===
-  chatCard: {
+  // === RIGHT CHAT LIST ===
+  chatCardInner: {
     flex: 1,
     borderRadius: 20,
     borderWidth: 2.5,
@@ -195,7 +219,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingTop: 8,
     paddingBottom: 8,
-    marginBottom: 12,
   },
   messagesContainer: {
     paddingBottom: 16,
@@ -231,12 +254,22 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
 
-  // === INPUT AREA (same feel as chatScreen) ===
+  // === BOTTOM INPUT BAR ===
+  chatCard: {
+    borderRadius: 20,
+    borderWidth: 2.5,
+    borderColor: "#9ca3af",
+    backgroundColor: "rgba(15,23,42,0.95)",
+    paddingHorizontal: 12,
+    paddingTop: 8,
+    paddingBottom: 8,
+    marginBottom: 8,
+  },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 5,
-    marginTop: 8,
+    height: 64,
+    paddingHorizontal: 8,
     borderWidth: 2.5,
     borderColor: "#9ca3af",
     backgroundColor: "white",
@@ -263,5 +296,4 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
   },
-  
 });
