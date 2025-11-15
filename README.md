@@ -1,50 +1,48 @@
-# Welcome to your Expo app 👋
+# Rochester Spirit: AR Campus Quest
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Rochester Spirit is an **AR-powered campus quest** for prospective students at the **University of Rochester**. It turns traditional tours into an interactive, playful experience where students explore campus with a live guide, scan posters to reveal AR characters, complete mini-games and quizzes, and learn about UR’s culture, history, and traditions.
 
-## Get started
+---
 
-1. Install dependencies
+## Overview
 
-   ```bash
-   npm install
-   ```
+Students follow a tour guide and scan UR-themed posters around campus. Scanning a poster spawns a 3D AR character who delivers fun facts, shows media, and challenges students with interactive tasks. Interactions earn points; a final quiz determines the winner.
 
-2. Start the app
+---
 
-   ```bash
-   npx expo start
-   ```
+## Key Features
 
-In the output, you'll find options to open the app in a
+- **Augmented Reality** — 3D characters appear when scanning posters.  
+- **Gamified Learning** — Points, mini-games, and quizzes encourage engagement.  
+- **Immersive Storytelling** — Characters are inspired by campus symbols, landmarks, and traditions.  
+- **Social Interaction** — Teams discuss findings and collaborate between stops.  
+- **Rewards** — Top scorer receives University of Rochester merchandise.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+---
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Characters
 
-## Get a fresh project
+- **Asahel the Scholar** — Explains *Meliora* and its origins.  
+- **Azariah the Dandelion Spirit** — Shares the dandelion symbolism.  
+- **Rocky the Yellowjacket** — Talks athletics and mascot history.
+- **Rush Rhees Librarian Ghost** — Library history and archives trivia.  
+- **Clock Tower Guardian** — Tower superstitions and acorn tradition.  
+- **Eastman/Wilson Day Volunteers** — Community service traditions.
 
-When you're ready, run:
+## How it Works
 
-```bash
-npm run reset-project
-```
+1. **Guided Exploration:** Live student guide leads groups across campus.  
+2. **Scan Posters:** Point device camera at posters to spawn AR characters.  
+3. **AR Interaction:** Characters present content, mini-games, and questions.  
+4. **Points & Gamification:** Interactions and mini-games award points.  
+5. **Final Quiz:** A short quiz and combined score determine the winner.
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-## Learn more
+## Goals
 
-To learn more about developing your project with Expo, look at the following resources:
+- Convert passive tours into interactive adventures.  
+- Use AR and gamification to teach campus landmarks, culture, and traditions.  
+- Strengthen school spirit — *Meliora* — through shared discovery.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+---
