@@ -15,6 +15,7 @@ import { useEffect } from 'react';
 import { Alert } from 'react-native';
 import Header from '@/components/ui/header';
 import { ScrollView } from 'react-native';
+import { colors } from '@/lib/colors';
 
 export const joinRoom = async (code: string, name: string, avatar: string) => {
   const { data: room, error: roomError } = await supabase
@@ -162,7 +163,9 @@ export default function LobbyScreen() {
 
   const handleBegin = () => {
     Alert.alert("Game Started!");
+    router.push('/ar');
   };
+
 
   const renderAvatar = (avatarName: string) => {
     switch (avatarName) {
@@ -212,7 +215,14 @@ export default function LobbyScreen() {
             />
           </View>
 
-          <TouchableOpacity style={styles.beginButton} onPress={handleBegin}>
+          <TouchableOpacity
+            style={[
+              styles.beginButton,
+              !nameAdded && { opacity: 0.5 }
+            ]}
+            onPress={handleBegin}
+            disabled={!nameAdded}
+          >
             <Text style={styles.buttonText}>Begin</Text>
           </TouchableOpacity>
         </View>
@@ -221,16 +231,79 @@ export default function LobbyScreen() {
   );
 }
 const styles = StyleSheet.create({
-  container: {padding:20, backgroundColor: '#001E5F'},
-  playersContainer: { paddingHorizontal: 10, paddingTop: 10, flex: 1 },
-  row: { flexDirection: 'row', justifyContent: 'space-between' },
-  playerCard: { padding: 14, marginVertical: 3, flex: 1, alignItems: 'center', justifyContent: 'center' },
-  background: { flex: 1 },
-  avatar: { height: 80, width: '100%', resizeMode: 'contain', marginTop: 8 },
-  player: { fontSize: 25, fontFamily: 'pix', color: '#1e3a8a', textAlign: 'center', backgroundColor: 'white', padding: 5, paddingHorizontal: 10, borderWidth: 3, borderColor: '#1e3a8a' },
-  inputRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 0 },
-  joinButtonRow: { backgroundColor: '#75a1ffff', paddingVertical: 14, paddingHorizontal: 18, marginRight: 10, borderWidth: 3, borderColor: '#1e3a8a' },
-  inputRowField: { flex: 1, borderWidth: 3, borderColor: '#1e3a8a', padding: 14, fontSize: 20, fontFamily: 'pix', backgroundColor: '#fff' },
-  beginButton: { backgroundColor: '#facc15', padding: 16, alignItems: 'center', borderWidth: 3, borderColor: '#1e3a8a', marginTop: 8 },
-  buttonText: { fontSize: 25, fontFamily: 'pix', color: '#1e3a8a' },
+  container: {
+    padding: 20,
+    backgroundColor: colors.primary.navy,
+  },
+  playersContainer: {
+    paddingHorizontal: 10,
+    paddingTop: 10,
+    flex: 1,
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  playerCard: {
+    padding: 14,
+    marginVertical: 3,
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  background: {
+    flex: 1,
+  },
+  avatar: {
+    height: 80,
+    width: '100%',
+    resizeMode: 'contain',
+    marginTop: 8,
+  },
+  player: {
+    fontSize: 25,
+    fontFamily: 'pix',
+    color: colors.primary.navy,
+    textAlign: 'center',
+    backgroundColor: colors.tertiary.white,
+    padding: 5,
+    paddingHorizontal: 10,
+    borderWidth: 2.5,
+    borderColor: colors.primary.navy,
+  },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 0,
+  },
+  joinButtonRow: {
+    backgroundColor: colors.secondary.connectiveCornflower,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    marginRight: 10,
+    borderWidth: 2.5,
+    borderColor: colors.primary.navy,
+  },
+  inputRowField: {
+    flex: 1,
+    borderWidth: 2.5,
+    borderColor: colors.primary.navy,
+    padding: 14,
+    fontSize: 20,
+    fontFamily: 'pix',
+    backgroundColor: colors.tertiary.white,
+  },
+  beginButton: {
+    backgroundColor: colors.secondary.yellowjacketGold,
+    padding: 16,
+    alignItems: 'center',
+    borderWidth: 2.5,
+    borderColor: colors.primary.navy,
+    marginTop: 8,
+  },
+  buttonText: {
+    fontSize: 15,
+    fontFamily: 'Snowball',
+    color: colors.primary.navy,
+  },
 });
