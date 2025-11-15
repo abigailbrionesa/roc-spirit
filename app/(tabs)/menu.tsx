@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ImageBackground, Image, View, StyleSheet, Dimensions, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from "@expo/vector-icons";
 import { useFonts } from 'expo-font';
+import { useRouter } from 'expo-router';
 
 const Section = ({ title, children }: any) => {
     const [open, setOpen] = useState(false);
@@ -21,11 +22,8 @@ const Section = ({ title, children }: any) => {
 const { height } = Dimensions.get('window');
 
 export default function InstructionsMenu() {
-    const [fontsLoaded] = useFonts({
-        'pix': require('../../assets/fonts/pix.ttf'),
-    });
 
-    if (!fontsLoaded) return null;
+    const router = useRouter();
 
     return (
         <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
@@ -105,8 +103,8 @@ export default function InstructionsMenu() {
                     </View>
                 </Section>
 
-                <TouchableOpacity style={styles.startButton}>
-                    <Text style={styles.startText}>Start Tour</Text>
+                <TouchableOpacity style={styles.startButton} onPress={() => router.push('/')}>
+                    <Text style={styles.startText}>Go back</Text>
                 </TouchableOpacity>
             </View>
         </ScrollView>
@@ -193,7 +191,7 @@ const styles = StyleSheet.create({
     startText: {
         color: "white",
         textAlign: "center",
-        fontSize: 17,
+        fontSize: 25,
         fontFamily: "pix",
         textDecorationLine: "underline",
     },
