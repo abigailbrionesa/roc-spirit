@@ -2,13 +2,19 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useLocalSearchParams } from 'expo-router';
+import { Image } from 'react-native';
 import { useFonts } from 'expo-font';
+import { ImageBackground } from 'react-native';
 
 export default function LobbyScreen() {
     const router = useRouter();
     const { code } = useLocalSearchParams<{ code: string }>();
     const [name, setName] = useState('');
-    const [players, setPlayers] = useState(['Alice', 'Bob', 'Charlie']);
+    const [players, setPlayers] = useState([
+        { name: 'Alice', avatar: require('../../assets/avatars/avatar1.png') },
+        { name: 'Bob', avatar: require('../../assets/avatars/avatar2.png') },
+        { name: 'Charlie', avatar: require('../../assets/avatars/avatar3.png') },
+    ]);
     const [nameAdded, setNameAdded] = useState(false);
 
     const [fontsLoaded] = useFonts({
@@ -19,59 +25,75 @@ export default function LobbyScreen() {
 
     const handleJoin = () => {
         if (!name.trim()) return;
-        if (!players.includes(name)) {
-            setPlayers([...players, name]);
+        if (!players.some(p => p.name === name)) {
+            const nextAvatarIndex = players.length + 1;
+            const avatar = require(`../../assets/avatars/avatar4.png`);
+            setPlayers([...players, { name, avatar }]);
             setNameAdded(true);
-
         }
         setName('');
     };
+
 
     const handleBegin = () => {
         alert('Game Started!');
     };
 
-    const renderPlayer = ({ item }: { item: string }) => (
+    const renderPlayer = ({ item }: { item: { name: string; avatar: any } }) => (
         <View style={styles.playerCard}>
-            <Text style={styles.player}>{item}</Text>
+            <Text style={styles.player}>{item.name}</Text>
+            <Image source={item.avatar} style={styles.avatar} />
         </View>
     );
 
+
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>🧭 Game Code: {code}</Text>
 
-            <Text style={styles.subtitle}>Players in the Lobby</Text>
-            <FlatList
-                data={players}
-                keyExtractor={(item) => item}
-                renderItem={renderPlayer}
-                contentContainerStyle={{ paddingBottom: 20 }}
-            />
+        <ImageBackground
+            source={require('../../assets/background4.png')}
+            style={styles.background}
+            resizeMode="cover"
+        >
+            <View style={styles.container}>
 
-            <View style={styles.inputRow}>
-                <TouchableOpacity
-                    style={[styles.joinButtonRow, nameAdded && { opacity: 0.5 }]}
-                    onPress={handleJoin}
-                    disabled={nameAdded}
-                >
-                    <Text style={styles.buttonText}>Add Name</Text>
-                </TouchableOpacity>
-                <TextInput
-                    style={styles.inputRowField}
-                    placeholder=""
-                    placeholderTextColor="#888"
-                    value={name}
-                    onChangeText={setName}
-                    editable={!nameAdded}
+                <Text style={styles.title}>🧭 Game Code: {code}</Text>
+
+                <Text style={styles.subtitle}>Players in the Lobby</Text>
+                <FlatList
+                    data={players}
+                    keyExtractor={(item) => item.name}
+                    renderItem={renderPlayer}
+                    numColumns={2}
+                    columnWrapperStyle={{ justifyContent: 'space-between' }}
+                    contentContainerStyle={{ paddingBottom: 20 }}
                 />
+
+
+                <View style={styles.inputRow}>
+                    <TouchableOpacity
+                        style={[styles.joinButtonRow, nameAdded && { opacity: 0.5 }]}
+                        onPress={handleJoin}
+                        disabled={nameAdded}
+                    >
+                        <Text style={styles.buttonText}>Add Name</Text>
+                    </TouchableOpacity>
+                    <TextInput
+                        style={styles.inputRowField}
+                        placeholder=""
+                        placeholderTextColor="#888"
+                        value={name}
+                        onChangeText={setName}
+                        editable={!nameAdded}
+                    />
+                </View>
+
+
+                <TouchableOpacity style={styles.beginButton} onPress={handleBegin}>
+                    <Text style={styles.buttonText}>Begin</Text>
+                </TouchableOpacity>
             </View>
 
-
-            <TouchableOpacity style={styles.beginButton} onPress={handleBegin}>
-                <Text style={styles.buttonText}>Begin</Text>
-            </TouchableOpacity>
-        </View>
+        </ImageBackground>
     );
 }
 
@@ -80,7 +102,6 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 20,
         paddingVertical: 50,
-        backgroundColor: '#e6f0ff',
     },
     title: {
         fontSize: 26,
@@ -100,17 +121,30 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     playerCard: {
-        backgroundColor: '#fff',
         padding: 14,
         marginVertical: 6,
-        marginHorizontal: 10,
+        flex: 1,
         alignItems: 'center',
+        justifyContent: 'center',
+    },
+    background: {
+        flex: 1,
+        width: '100%',
+        height: '100%',
+    },
+    avatar: {
+        height: 80,
+        width: '100%',
+        resizeMode: 'contain',
+        marginTop: 8,
     },
     player: {
         fontSize: 18,
         fontFamily: 'pix',
         color: '#1e3a8a',
+        textAlign: 'center',
     },
+
     inputRow: {
         flexDirection: 'row',
         alignItems: 'center',
