@@ -9,6 +9,7 @@ export default function LobbyScreen() {
     const { code } = useLocalSearchParams<{ code: string }>();
     const [name, setName] = useState('');
     const [players, setPlayers] = useState(['Alice', 'Bob', 'Charlie']);
+    const [nameAdded, setNameAdded] = useState(false);
 
     const [fontsLoaded] = useFonts({
         pix: require('../../assets/fonts/pix.ttf'),
@@ -20,6 +21,8 @@ export default function LobbyScreen() {
         if (!name.trim()) return;
         if (!players.includes(name)) {
             setPlayers([...players, name]);
+            setNameAdded(true);
+
         }
         setName('');
     };
@@ -47,7 +50,11 @@ export default function LobbyScreen() {
             />
 
             <View style={styles.inputRow}>
-                <TouchableOpacity style={styles.joinButtonRow} onPress={handleJoin}>
+                <TouchableOpacity
+                    style={[styles.joinButtonRow, nameAdded && { opacity: 0.5 }]}
+                    onPress={handleJoin}
+                    disabled={nameAdded}
+                >
                     <Text style={styles.buttonText}>Add Name</Text>
                 </TouchableOpacity>
                 <TextInput
@@ -56,8 +63,10 @@ export default function LobbyScreen() {
                     placeholderTextColor="#888"
                     value={name}
                     onChangeText={setName}
+                    editable={!nameAdded}
                 />
             </View>
+
 
             <TouchableOpacity style={styles.beginButton} onPress={handleBegin}>
                 <Text style={styles.buttonText}>Begin</Text>
