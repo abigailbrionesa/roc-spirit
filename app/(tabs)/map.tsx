@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { View, StyleSheet, ActivityIndicator, Text } from "react-native";
+import { View, StyleSheet, ActivityIndicator } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import * as Location from "expo-location";
 import pixelStyle from "../../assets/pixelstyle.json";
-import { Image } from "react-native";
+import Header from "@/components/ui/header";
 
 export default function CampusMap() {
     const [location, setLocation] = useState(null);
@@ -17,27 +17,14 @@ export default function CampusMap() {
     };
 
     const markers = [
-        {
-            id: 1,
-            title: "Rush Rhees Library",
-            coordinate: { latitude: 43.128445, longitude: -77.628003 },
-        },
-        {
-            id: 2,
-            title: "Frederick Douglass Commons",
-            coordinate: { latitude: 43.129779, longitude: -77.626214 },
-        },
-        {
-            id: 3,
-            title: "Goergen Athletic Center",
-            coordinate: { latitude: 43.125673, longitude: -77.630179 },
-        },
+        { id: 1, title: "Rush Rhees Library", coordinate: { latitude: 43.128445, longitude: -77.628003 } },
+        { id: 2, title: "Frederick Douglass Commons", coordinate: { latitude: 43.129779, longitude: -77.626214 } },
+        { id: 3, title: "Goergen Athletic Center", coordinate: { latitude: 43.125673, longitude: -77.630179 } },
     ];
 
     useEffect(() => {
         (async () => {
             let { status } = await Location.requestForegroundPermissionsAsync();
-
             if (status !== "granted") {
                 console.log("Permission denied");
                 setLoading(false);
@@ -60,15 +47,11 @@ export default function CampusMap() {
 
     return (
         <View style={styles.container}>
-            <View style={styles.header}>
-                <View style={styles.headerContent}>
-                    <Image
-                        source={require("../../assets/mapicon.png")}
-                        style={styles.headerIcon}
-                    />
-                    <Text style={styles.headerText}>Campus Map</Text>
-                </View>
-            </View>
+            <Header
+                title="Campus Map"
+                iconSource={require("../../assets/mapicon.png")}
+                style={{ backgroundColor: "#FFD82B" }}
+            />
 
             <MapView
                 style={styles.map}
@@ -97,7 +80,6 @@ export default function CampusMap() {
                     />
                 )}
             </MapView>
-
         </View>
     );
 }
@@ -105,31 +87,6 @@ export default function CampusMap() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-    },
-    header: {
-        backgroundColor: "#FFD82B",
-        justifyContent: "center",
-        alignItems: "center",
-        paddingTop: 50,
-        paddingBottom: 20,
-        borderBottomWidth: 3,
-        borderColor: '#1e3a8a',
-    },
-    headerContent: {
-        flexDirection: "row",
-        alignItems: "center",
-
-    },
-    headerText: {
-        fontSize: 40,
-        fontFamily: "pix",
-        marginLeft: 10,
-        color: "#000",
-    },
-    headerIcon: {
-        width: 50,
-        height: 50,
-        resizeMode: "contain",
     },
     map: {
         flex: 1,
