@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { ImageBackground, Image, View, StyleSheet, Dimensions, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from "@expo/vector-icons";
-import { useFonts } from 'expo-font';
 import { useRouter } from 'expo-router';
 
 const Section = ({ title, children }: any) => {
@@ -39,7 +38,7 @@ export default function InstructionsMenu() {
                         style={styles.logo}
                         resizeMode="contain"
                     />
-                    <Text style={styles.subtitle}>AR Campus Quest – Instructions</Text>
+                    <Text style={styles.subtitle}>AR Campus Quest</Text>
                 </View>
 
                 <Section title="Overview">
@@ -132,7 +131,7 @@ const styles = StyleSheet.create({
     subtitle: {
         fontSize: 20,
         color: "#d5ddf4",
-        fontFamily: "pix",
+        fontFamily: "Snowball",
     },
     text: {
         fontFamily: "pix",
