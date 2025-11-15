@@ -78,7 +78,12 @@ export default function CampusMap() {
                 customMapStyle={pixelStyle}
             >
                 {markers.map((m) => (
-                    <Marker key={m.id} coordinate={m.coordinate} title={m.title} />
+                    <Marker
+                        key={m.id}
+                        coordinate={m.coordinate}
+                        title={m.title}
+                        icon={require("../../assets/marker2.png")}
+                    />
                 ))}
 
                 {location && (
@@ -87,11 +92,12 @@ export default function CampusMap() {
                             latitude: location.latitude,
                             longitude: location.longitude,
                         }}
-                        pinColor="blue"
+                        icon={require("../../assets/marker1.png")}
                         title="Your Location"
                     />
                 )}
             </MapView>
+
         </View>
     );
 }
@@ -112,7 +118,7 @@ const styles = StyleSheet.create({
     headerContent: {
         flexDirection: "row",
         alignItems: "center",
-        
+
     },
     headerText: {
         fontSize: 40,
