@@ -1,21 +1,21 @@
-import React, { useState } from 'react';
+import Header from '@/components/ui/header';
+import { colors } from '@/lib/colors';
+import { supabase } from '@/lib/supabase';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
 import {
-  View,
+  Alert,
+  Image,
+  ImageBackground,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  Image,
-  ImageBackground,
+  View,
 } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useLocalSearchParams } from 'expo-router';
-import { supabase } from '@/lib/supabase';
-import { useEffect } from 'react';
-import { Alert } from 'react-native';
-import Header from '@/components/ui/header';
-import { ScrollView } from 'react-native';
-import { colors } from '@/lib/colors';
 
 export const joinRoom = async (code: string, name: string, avatar: string) => {
   const { data: room, error: roomError } = await supabase
@@ -53,7 +53,7 @@ const PlayerCard = ({ player }: { player: any }) => {
       case 'avatar4.png':
         return require('../../assets/avatars/avatar4.png');
       default:
-        return require('../../assets/avatars/avatar1.png');
+        return require('../../assets/avatars/avatar5.png');
     }
   };
 
@@ -113,7 +113,7 @@ export default function LobbyScreen() {
     if (!name.trim() || !code) return;
 
     try {
-      const avatar = "avatar4.png";
+      const avatar = "avatar5.png";
       const newPlayer = await joinRoom(code, name, avatar);
 
       setPlayers((prev) => [...prev, newPlayer]);
@@ -162,8 +162,8 @@ export default function LobbyScreen() {
 
   const renderAvatar = (avatarName: string) => {
     switch (avatarName) {
-      case "avatar1.png":
-        return require("../../assets/avatars/avatar1.png");
+      case "avatar5.png":
+        return require("../../assets/avatars/avatar5.png");
       case "avatar2.png":
         return require("../../assets/avatars/avatar2.png");
       case "avatar3.png":
@@ -171,7 +171,7 @@ export default function LobbyScreen() {
       case "avatar4.png":
         return require("../../assets/avatars/avatar4.png");
       default:
-        return require("../../assets/avatars/avatar1.png");
+        return require("../../assets/avatars/avatar5.png");
     }
   };
 
@@ -186,11 +186,17 @@ export default function LobbyScreen() {
         <Header
           title={`Code: ${code}`}
           onBackPress={() => router.back()}
+          style={{ paddingTop: 36 }}
         />
 
         <PlayerGrid players={players} />
 
-        <View style={styles.container}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'position' : 'height'}
+          keyboardVerticalOffset={0}
+          style={styles.kavWrapper}
+        >
+          <View style={styles.container}>
           <View style={styles.inputRow}>
             <TouchableOpacity
               style={[styles.joinButtonRow, nameAdded && { opacity: 0.5 }]}
@@ -217,7 +223,8 @@ export default function LobbyScreen() {
           >
             <Text style={styles.buttonText}>Begin</Text>
           </TouchableOpacity>
-        </View>
+          </View>
+        </KeyboardAvoidingView>
       </ImageBackground>
     </View>
   );
@@ -226,6 +233,9 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
     backgroundColor: colors.primary.navy,
+  },
+  kavWrapper: {
+    width: '100%',
   },
   playersContainer: {
     paddingHorizontal: 10,

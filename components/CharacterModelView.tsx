@@ -1,14 +1,14 @@
 // components/CharacterModelView.tsx
 import {
-    Viro3DObject,
-    ViroAmbientLight,
-    ViroARScene,
-    ViroARSceneNavigator,
+  Viro3DObject,
+  ViroAmbientLight,
+  ViroARScene,
+  ViroARSceneNavigator,
+  ViroDirectionalLight,
+  ViroNode,
 } from "@reactvision/react-viro";
-import { BlurView } from "expo-blur";
-import { CameraView } from "expo-camera";
 import React, { useMemo } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 type CharacterModelViewProps = {
   characterName?: string;
@@ -23,24 +23,24 @@ const MODEL_CONFIGS: Record<
     rotation: [number, number, number];
   }
 > = {
-  "Rocky": {
+  Rocky: {
     source: require("../assets/models/Rocky3.glb"),
-    scale: [0.12, 0.12, 0.12],
+    scale: [0.3, 0.3, 0.3],
     rotation: [0, 180, 0],
   },
   "Flower Spirit": {
     source: require("../assets/models/flower.glb"),
-    scale: [0.12, 0.12, 0.12],
+    scale: [0.28, 0.28, 0.28],
     rotation: [0, 180, 0],
   },
   "Ghost Friend": {
     source: require("../assets/models/ghost_ur.glb"),
-    scale: [0.12, 0.12, 0.12],
+    scale: [0.28, 0.28, 0.28],
     rotation: [0, 0, 0],
   },
-  "Teacher": {
+  Teacher: {
     source: require("../assets/models/teacher.glb"),
-    scale: [1.2, 1.2, 1.2],
+    scale: [0.5, 0.5, 0.5],
     rotation: [0, 0, 0],
   },
 };
@@ -48,12 +48,12 @@ const MODEL_CONFIGS: Record<
 const CharacterModelView: React.FC<CharacterModelViewProps> = ({ characterName }) => {
   const config = useMemo(() => {
     if (!characterName) return null;
-
+    
     // Try exact match first
     if (MODEL_CONFIGS[characterName]) {
       return MODEL_CONFIGS[characterName];
     }
-
+    
     // Fallback: loose match on lowercase
     const lower = characterName.toLowerCase();
     const key = Object.keys(MODEL_CONFIGS).find(k =>
@@ -62,42 +62,56 @@ const CharacterModelView: React.FC<CharacterModelViewProps> = ({ characterName }
     return key ? MODEL_CONFIGS[key] : null;
   }, [characterName]);
 
-  // If no config, just render empty space
+  // If no config, show fallback
   if (!config) {
-    return <View style={styles.fallback} />;
+    return (
+      <View style={styles.fallback}>
+        <Text style={styles.fallbackText}>Model not found: {characterName}</Text>
+      </View>
+    );
   }
 
-  const Scene = () => (
+  const ModelScene = () => (
     <ViroARScene>
-      <ViroAmbientLight color="#ffffff" intensity={1000} />
-      <Viro3DObject
-        source={config.source}
-        type="GLB"
-        scale={config.scale}
-        rotation={config.rotation}
-        position={[0, 0, -1.2]}
+      {/* Lighting */}
+      <ViroAmbientLight color="#ffffff" intensity={500} />
+      <ViroDirectionalLight
+        color="#ffffff"
+        direction={[0, -1, -0.2]}
+        intensity={800}
       />
+      
+      {/* 3D Model - fixed in front of camera, no marker needed */}
+      <ViroNode position={[0, -0.2, -1.5]}>
+        <Viro3DObject
+          source={config.source}
+          type="GLB"
+          scale={config.scale}
+          rotation={config.rotation}
+          animation={{ name: "idle", run: true, loop: true }}
+        />
+      </ViroNode>
     </ViroARScene>
   );
 
   return (
     <View style={styles.wrapper}>
-      {/* Background: Live Camera with Blur */}
-      <View style={StyleSheet.absoluteFill}>
-        <CameraView style={styles.camera} facing="back" />
-        <BlurView intensity={60} tint="dark" style={StyleSheet.absoluteFill} />
-      </View>
+      {/* White background layer */}
+      <View style={styles.whiteBackground} />
       
-      {/* Foreground: 3D Model */}
+      {/* AR Scene with model */}
       <ViroARSceneNavigator
-        autofocus={true}
-        initialScene={{ scene: Scene }}
-        style={styles.scene}
-        viroAppProps={{ 
-          displayPointCloud: false,
+        autofocus={false}
+        initialScene={{
+          scene: ModelScene,
         }}
-        worldAlignment="GravityAndHeading"
+        style={styles.scene}
       />
+      
+      {/* Caption */}
+      <View style={styles.captionWrap}>
+        <Text style={styles.captionText}>{characterName || "Model"}</Text>
+      </View>
     </View>
   );
 };
@@ -105,22 +119,56 @@ const CharacterModelView: React.FC<CharacterModelViewProps> = ({ characterName }
 const styles = StyleSheet.create({
   wrapper: {
     width: "100%",
-    height: 350,
+    height: 320,
     overflow: "hidden",
     borderRadius: 20,
-    backgroundColor: "#000",
+    backgroundColor: "#ffffff",
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
   },
-  camera: {
-    flex: 1,
+  whiteBackground: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "#ffffff",
+    zIndex: 1,
   },
   scene: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "transparent",
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 2,
   },
   fallback: {
     width: "100%",
-    height: 350,
-    backgroundColor: "#1f2937",
+    height: 320,
+    backgroundColor: "#f3f4f6",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  fallbackText: {
+    color: "#6b7280",
+    fontSize: 14,
+  },
+  captionWrap: {
+    position: "absolute",
+    bottom: 12,
+    alignSelf: "center",
+    backgroundColor: "rgba(0,0,0,0.6)",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    zIndex: 3,
+  },
+  captionText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "600",
   },
 });
 
