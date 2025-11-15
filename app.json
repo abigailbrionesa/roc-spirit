@@ -56,7 +56,8 @@
       [
         "@reactvision/react-viro",
         {}
-      ]
+      ],
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,
