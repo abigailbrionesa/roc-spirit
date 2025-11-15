@@ -82,7 +82,7 @@ export default function CampusMap() {
                         key={m.id}
                         coordinate={m.coordinate}
                         title={m.title}
-                        icon={require("../../assets/marker2.png")}
+                        icon={require("../../assets/marker22.png")}
                     />
                 ))}
 
@@ -92,7 +92,7 @@ export default function CampusMap() {
                             latitude: location.latitude,
                             longitude: location.longitude,
                         }}
-                        icon={require("../../assets/marker1.png")}
+                        icon={require("../../assets/marker11.png")}
                         title="Your Location"
                     />
                 )}
