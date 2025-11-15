@@ -102,7 +102,10 @@ export default function ARScreen() {
     console.log("[ARScreen] Starting chat with:", currentTarget.name);
     router.push({
       pathname: "/chat" as any,
-      params: { characterName: currentTarget.name },
+      params: {
+        characterName: currentTarget.name,
+        characterId: currentTarget.id, // NEW
+      },
     });
   }, [currentTarget, router]);
 
