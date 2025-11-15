@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, StatusBar, ImageBackground, TextInput, TouchableOpacity, ScrollView } from "react-native";
 import Header from "@/components/ui/header";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "react-native";
 const getAIResponse = async (prompt: string) => {
   return `NPC Response for prompt: "${prompt}"`;
@@ -41,7 +40,7 @@ const ChatScreen: React.FC = () => {
         translucent={true}
       />
 
-      <Header title="Chat with NPC" />
+      <Header title="Chat" />
 
       <View style={styles.body}>
         <ScrollView
