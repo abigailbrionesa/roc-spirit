@@ -4,24 +4,48 @@ import { useNavigation } from "@react-navigation/native";
 
 type HeaderProps = {
   title: string;
+  iconSource?: any;
   style?: ViewStyle;
   titleStyle?: TextStyle;
-  backImageStyle?: ImageStyle;
+  iconStyle?: ImageStyle;
+  onIconPress?: () => void;
   onBackPress?: () => void;
 };
 
-const Header: React.FC<HeaderProps> = ({ title, style, titleStyle, backImageStyle, onBackPress }) => {
+const Header: React.FC<HeaderProps> = ({
+  title,
+  iconSource,
+  style,
+  titleStyle,
+  iconStyle,
+  onIconPress,
+  onBackPress
+}) => {
   const navigation = useNavigation<any>();
 
   return (
     <View style={[styles.header, style]}>
-      <TouchableOpacity onPress={onBackPress ? onBackPress : () => navigation.goBack()}>
+      <TouchableOpacity
+        onPress={onBackPress ? onBackPress : () => navigation.goBack()}
+        style={styles.leftContainer}
+      >
         <Image
           source={require('../../assets/backbutton.png')}
-          style={[styles.backImage, backImageStyle]}
+          style={styles.backImage}
           resizeMode="contain"
         />
       </TouchableOpacity>
+
+      {iconSource && (
+        <TouchableOpacity onPress={onIconPress} style={styles.iconContainer}>
+          <Image
+            source={iconSource}
+            style={[styles.iconImage, iconStyle]}
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
+      )}
+
       <Text style={[styles.title, titleStyle]}>{title}</Text>
       <View style={{ width: 40 }} />
     </View>
@@ -41,9 +65,23 @@ const styles = StyleSheet.create({
     borderBottomColor: "#1f2937",
     backgroundColor: 'white',
   },
-  backImage: {
+  leftContainer: {
     width: 40,
-    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  backImage: {
+    width: 30,
+    height: 30,
+  },
+  iconContainer: {
+    marginLeft: 20,
+    width: 50,
+    height: 50,
+  },
+  iconImage: {
+    width: 50,
+    height: 50,
   },
   title: {
     flex: 1,
