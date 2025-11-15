@@ -160,13 +160,6 @@ export default function LobbyScreen() {
     };
   }, [code]);
 
-
-  const handleBegin = () => {
-    Alert.alert("Game Started!");
-    router.push('/ar');
-  };
-
-
   const renderAvatar = (avatarName: string) => {
     switch (avatarName) {
       case "avatar1.png":
@@ -218,9 +211,8 @@ export default function LobbyScreen() {
           <TouchableOpacity
             style={[
               styles.beginButton,
-              !nameAdded && { opacity: 0.5 }
             ]}
-            onPress={handleBegin}
+            onPress={() => router.push('/ar')}
             disabled={!nameAdded}
           >
             <Text style={styles.buttonText}>Begin</Text>
