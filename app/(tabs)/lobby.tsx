@@ -1,15 +1,21 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, Animated, Easing } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useLocalSearchParams } from 'expo-router';
+import { Image } from 'react-native';
 import { useFonts } from 'expo-font';
+import { ImageBackground } from 'react-native';
 
 export default function LobbyScreen() {
     const router = useRouter();
     const { code } = useLocalSearchParams<{ code: string }>();
     const [name, setName] = useState('');
-    const [players, setPlayers] = useState(['Alice', 'Bob', 'Charlie']);
-    const [pressedAnim] = useState(new Animated.Value(1));
+    const [players, setPlayers] = useState([
+        { name: 'Alice', avatar: require('../../assets/avatars/avatar1.png') },
+        { name: 'Bob', avatar: require('../../assets/avatars/avatar2.png') },
+        { name: 'Charlie', avatar: require('../../assets/avatars/avatar3.png') },
+    ]);
+    const [nameAdded, setNameAdded] = useState(false);
 
     const [fontsLoaded] = useFonts({
         pix: require('../../assets/fonts/pix.ttf'),
@@ -19,75 +25,75 @@ export default function LobbyScreen() {
 
     const handleJoin = () => {
         if (!name.trim()) return;
-        if (!players.includes(name)) {
-            setPlayers([...players, name]);
+        if (!players.some(p => p.name === name)) {
+            const nextAvatarIndex = players.length + 1;
+            const avatar = require(`../../assets/avatars/avatar4.png`);
+            setPlayers([...players, { name, avatar }]);
+            setNameAdded(true);
         }
         setName('');
-        animateButton();
     };
+
 
     const handleBegin = () => {
         alert('Game Started!');
-        animateButton();
     };
 
-    const animateButton = () => {
-        Animated.sequence([
-            Animated.timing(pressedAnim, {
-                toValue: 0.95,
-                duration: 100,
-                useNativeDriver: true,
-                easing: Easing.ease,
-            }),
-            Animated.timing(pressedAnim, {
-                toValue: 1,
-                duration: 100,
-                useNativeDriver: true,
-                easing: Easing.ease,
-            }),
-        ]).start();
-    };
-
-    const renderPlayer = ({ item }: { item: string }) => (
+    const renderPlayer = ({ item }: { item: { name: string; avatar: any } }) => (
         <View style={styles.playerCard}>
-            <Text style={styles.player}>{item}</Text>
+            <Text style={styles.player}>{item.name}</Text>
+            <Image source={item.avatar} style={styles.avatar} />
         </View>
     );
 
+
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>🧭 Game Code: {code}</Text>
 
-            <Text style={styles.subtitle}>Players in the Lobby</Text>
-            <FlatList
-                data={players}
-                keyExtractor={(item) => item}
-                renderItem={renderPlayer}
-                contentContainerStyle={{ paddingBottom: 20 }}
-            />
+        <ImageBackground
+            source={require('../../assets/background4.png')}
+            style={styles.background}
+            resizeMode="cover"
+        >
+            <View style={styles.container}>
 
-            {/* Input + Add Name Button Row */}
-            <View style={styles.inputRow}>
-                <Animated.View style={{ transform: [{ scale: pressedAnim }] }}>
-                    <TouchableOpacity style={styles.joinButtonRow} onPress={handleJoin}>
+                <Text style={styles.title}>🧭 Game Code: {code}</Text>
+
+                <Text style={styles.subtitle}>Players in the Lobby</Text>
+                <FlatList
+                    data={players}
+                    keyExtractor={(item) => item.name}
+                    renderItem={renderPlayer}
+                    numColumns={2}
+                    columnWrapperStyle={{ justifyContent: 'space-between' }}
+                    contentContainerStyle={{ paddingBottom: 20 }}
+                />
+
+
+                <View style={styles.inputRow}>
+                    <TouchableOpacity
+                        style={[styles.joinButtonRow, nameAdded && { opacity: 0.5 }]}
+                        onPress={handleJoin}
+                        disabled={nameAdded}
+                    >
                         <Text style={styles.buttonText}>Add Name</Text>
                     </TouchableOpacity>
-                </Animated.View>
-                <TextInput
-                    style={styles.inputRowField}
-                    placeholder=""
-                    placeholderTextColor="#888"
-                    value={name}
-                    onChangeText={setName}
-                />
-            </View>
+                    <TextInput
+                        style={styles.inputRowField}
+                        placeholder=""
+                        placeholderTextColor="#888"
+                        value={name}
+                        onChangeText={setName}
+                        editable={!nameAdded}
+                    />
+                </View>
 
-            <Animated.View style={{ transform: [{ scale: pressedAnim }] }}>
+
                 <TouchableOpacity style={styles.beginButton} onPress={handleBegin}>
                     <Text style={styles.buttonText}>Begin</Text>
                 </TouchableOpacity>
-            </Animated.View>
-        </View>
+            </View>
+
+        </ImageBackground>
     );
 }
 
@@ -96,7 +102,6 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 20,
         paddingVertical: 50,
-        backgroundColor: '#e6f0ff',
     },
     title: {
         fontSize: 26,
@@ -116,68 +121,64 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     playerCard: {
-        backgroundColor: '#fff',
-        borderRadius: 16,
         padding: 14,
         marginVertical: 6,
-        marginHorizontal: 10,
-        shadowColor: '#000',
-        shadowOpacity: 0.05,
-        shadowOffset: { width: 0, height: 3 },
-        shadowRadius: 6,
-        elevation: 3,
+        flex: 1,
         alignItems: 'center',
+        justifyContent: 'center',
+    },
+    background: {
+        flex: 1,
+        width: '100%',
+        height: '100%',
+    },
+    avatar: {
+        height: 80,
+        width: '100%',
+        resizeMode: 'contain',
+        marginTop: 8,
     },
     player: {
         fontSize: 18,
         fontFamily: 'pix',
         color: '#1e3a8a',
+        textAlign: 'center',
     },
+
     inputRow: {
         flexDirection: 'row',
         alignItems: 'center',
         marginVertical: 12,
     },
     joinButtonRow: {
-        backgroundColor: '#2563eb',
+        backgroundColor: '#75a1ffff',
         paddingVertical: 14,
         paddingHorizontal: 18,
-        borderRadius: 12,
         marginRight: 10,
-        shadowColor: '#2563eb',
-        shadowOpacity: 0.3,
-        shadowOffset: { width: 0, height: 5 },
-        shadowRadius: 8,
+        borderWidth: 3,
+        borderColor: '#1e3a8a',
     },
     inputRowField: {
         flex: 1,
-        borderWidth: 1,
+        borderWidth: 3,
         borderColor: '#1e3a8a',
-        borderRadius: 12,
         padding: 14,
         fontSize: 18,
         fontFamily: 'pix',
         backgroundColor: '#fff',
-        shadowColor: '#000',
-        shadowOpacity: 0.05,
-        shadowOffset: { width: 0, height: 3 },
-        shadowRadius: 6,
-        elevation: 2,
     },
     beginButton: {
         backgroundColor: '#facc15',
         padding: 16,
-        borderRadius: 12,
         alignItems: 'center',
-        shadowColor: '#facc15',
-        shadowOpacity: 0.3,
-        shadowOffset: { width: 0, height: 5 },
-        shadowRadius: 8,
+        borderWidth: 3,
+        borderColor: '#1e3a8a',
+        color: '#1e3a8a',
         marginTop: 12,
     },
     buttonText: {
         fontSize: 20,
         fontFamily: 'pix',
-        color: '#fff',
+        color: '#1e3a8a',
     },
 });
