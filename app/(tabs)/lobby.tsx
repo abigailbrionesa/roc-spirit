@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
     borderWidth: 2.5,
     borderColor: colors.primary.navy,
     padding: 14,
-    fontSize: 20,
+    fontSize: 25,
     fontFamily: 'pix',
     backgroundColor: colors.tertiary.white,
   },
