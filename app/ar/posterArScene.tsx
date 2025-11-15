@@ -1,75 +1,121 @@
 // app/ar/posterArScene.tsx
 
 import {
-  ViroARImageMarker,
-  ViroARScene,
-  ViroARTrackingTargets,
-  ViroAmbientLight,
-  ViroBox,
-  ViroMaterials
+    Viro3DObject,
+    ViroARImageMarker,
+    ViroARScene,
+    ViroARTrackingTargets,
+    ViroAmbientLight,
+    ViroDirectionalLight,
+    ViroNode,
 } from "@reactvision/react-viro";
-import React, { useState } from "react";
+import React from "react";
+import { POSTER_TARGET_IDS } from "./posterTargets";
 
-const POSTER_TARGET_ID = "melioraPoster";
+// -----------------------------
+// AR target + materials setup
+// -----------------------------
 
 try {
   ViroARTrackingTargets.createTargets({
-    [POSTER_TARGET_ID]: {
-      source: require("../../assets/posters/melioraPoster.png"),
+    [POSTER_TARGET_IDS.FLOWER]: {
+      source: require("../../assets/posters/flower.png"),
+      orientation: "Up",
+      physicalWidth: 0.6,
+    },
+    [POSTER_TARGET_IDS.GHOST]: {
+      source: require("../../assets/posters/ghost.png"),
+      orientation: "Up",
+      physicalWidth: 0.6,
+    },
+    [POSTER_TARGET_IDS.ROCKY]: {
+      source: require("../../assets/posters/rocky.png"),
+      orientation: "Up",
+      physicalWidth: 0.6,
+    },
+    [POSTER_TARGET_IDS.TEACHER]: {
+      source: require("../../assets/posters/teacher.png"),
       orientation: "Up",
       physicalWidth: 0.6,
     },
   });
-} catch {
+} catch (e) {
   console.log("[PosterArScene] Tracking targets already created");
 }
 
-try {
-  ViroMaterials.createMaterials({
-    characterDummy: {
-      diffuseColor: "#2563eb",
-    },
-  });
-} catch {
-  console.log("[PosterArScene] Materials already created");
-}
+// -----------------------------
+// Model configurations
+// -----------------------------
 
-type PosterArSceneProps = {
-  sceneNavigator?: any;
-  arSceneNavigator?: any;
-  onCharacterTapped?: () => void;
-  onPosterFound?: (characterName: string) => void;
+const POSTER_CONFIGS = {
+  [POSTER_TARGET_IDS.FLOWER]: {
+    model: require("../../assets/models/flower.glb"),
+    scale: [0.05, 0.05, 0.05] as [number, number, number],
+    rotation: [0, 180, 0] as [number, number, number],
+  },
+  [POSTER_TARGET_IDS.GHOST]: {
+    model: require("../../assets/models/ghost_ur.glb"),
+    scale: [0.05, 0.05, 0.05] as [number, number, number],
+    rotation: [0, 0, 0] as [number, number, number],
+  },
+  [POSTER_TARGET_IDS.ROCKY]: {
+    model: require("../../assets/models/Rocky3.glb"),
+    scale: [0.05, 0.05, 0.05] as [number, number, number],
+    rotation: [0, 180, 0] as [number, number, number],
+  },
+  [POSTER_TARGET_IDS.TEACHER]: {
+    model: require("../../assets/models/teacher.glb"),
+    scale: [0.6, 0.6, 0.6] as [number, number, number],
+    rotation: [0, 0, 0] as [number, number, number],
+  },
 };
 
-const PosterArScene: React.FC<PosterArSceneProps> = (props) => {
-  console.log("[PosterArScene] Component rendered");
-  const [hasNotified, setHasNotified] = useState(false);
+// -----------------------------
+// Scene component
+// -----------------------------
 
-  const handleAnchorFound = () => {
-    console.log("[PosterArScene] Poster detected!");
-    if (!hasNotified) {
-      setHasNotified(true);
-      props.onPosterFound?.("Meliora Character");
-    }
+const PosterArScene: React.FC = () => {
+  const handleAnchorFound = (posterName: string) => {
+    console.log(`[PosterArScene] ${posterName} poster detected`);
+  };
+
+  const renderPosterMarker = (targetId: string) => {
+    const config = POSTER_CONFIGS[targetId as keyof typeof POSTER_CONFIGS];
+    
+    return (
+      <ViroARImageMarker
+        key={targetId}
+        target={targetId}
+        onAnchorFound={() => handleAnchorFound(targetId)}
+      >
+        {/* 3D Model positioned above the poster */}
+        <ViroNode position={[0, 0.08, 0]}>
+          <ViroNode transformBehaviors={["billboardY"]}>
+            <Viro3DObject
+              source={config.model}
+              type="GLB"
+              scale={config.scale}
+              rotation={config.rotation}
+              position={[0, 0, 0]}
+            />
+          </ViroNode>
+        </ViroNode>
+      </ViroARImageMarker>
+    );
   };
 
   return (
     <ViroARScene>
-      <ViroAmbientLight color="#ffffff" intensity={200} />
-      
-      <ViroARImageMarker
-        target={POSTER_TARGET_ID}
-        onAnchorFound={handleAnchorFound}
-      >
-        {/* Character appears on poster */}
-        <ViroBox
-          position={[0, 0.12, 0]}
-          width={0.1}
-          height={0.15}
-          length={0.05}
-          materials={["characterDummy"]}
-        />
-      </ViroARImageMarker>
+      {/* Lighting so things are visible */}
+      <ViroAmbientLight color="#ffffff" intensity={500} />
+      <ViroDirectionalLight
+        color="#ffffff"
+        direction={[0, -1, -0.2]}
+        intensity={800}
+      />
+
+      {/* Render all poster markers */}
+      {Object.values(POSTER_TARGET_IDS).map(targetId => renderPosterMarker(targetId))}
     </ViroARScene>
   );
 };

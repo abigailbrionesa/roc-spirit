@@ -1,6 +1,6 @@
 // app/logic/posterScanLogic.ts
 
-export type PosterId = "melioraPoster";
+export type PosterId = "flowerPoster" | "ghostPoster" | "rockyPoster" | "teacherPoster";
 
 export type PosterScanActions = {
   hasScannedPoster: boolean;
