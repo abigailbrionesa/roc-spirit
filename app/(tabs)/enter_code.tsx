@@ -18,7 +18,7 @@ export default function CodeInputScreen() {
             Alert.alert('Error', 'Please enter a code.');
             return;
         }
-        router.push({ pathname: '/lobby', params: { code } });
+        router.push(`/lobby?code=${code.toUpperCase()}`);
     };
 
     return (
