@@ -16,7 +16,7 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   const [fontsLoaded, error] = useFonts({
-    InterBold: require('../assets/fonts/pix.ttf'),
+    Pix: require('../assets/fonts/pix.ttf'),
     Snowball: require('../assets/fonts/snowbell.ttf'),
     Vt: require('../assets/fonts/vt.ttf'),
 

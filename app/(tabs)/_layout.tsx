@@ -48,9 +48,6 @@ export default function TabLayout() {
       />
       <Tabs.Screen
         name="chatScreen"
-        options={{
-          href: null, // Hide from tab bar
-        }}
       />
       <Tabs.Screen
         name="leaderboard"
