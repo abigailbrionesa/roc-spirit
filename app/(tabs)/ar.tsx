@@ -1,7 +1,8 @@
 // app/screens/ARScreen.tsx
 import { ViroARSceneNavigator } from "@reactvision/react-viro";
 import { useCameraPermissions } from "expo-camera";
-import React from "react";
+import { useRouter } from "expo-router";
+import React, { useCallback, useState } from "react";
 import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import PosterArScene from "../ar/posterArScene";
@@ -10,6 +11,18 @@ const { width, height } = Dimensions.get("window");
 
 export default function ARScreen() {
   const [permission, requestPermission] = useCameraPermissions();
+  const router = useRouter();
+  const [detectedCharacter, setDetectedCharacter] = useState<string | null>(null);
+
+  const handleCharacterTapped = useCallback(() => {
+    console.log("[ARScreen] Navigating to Chat screen...");
+    router.push("/chat" as any);
+  }, [router]);
+
+  const handlePosterFound = useCallback((characterName: string) => {
+    console.log("[ARScreen] Poster found:", characterName);
+    setDetectedCharacter(characterName);
+  }, []);
 
   if (!permission) {
     return <View style={styles.container} />;
@@ -39,12 +52,30 @@ export default function ARScreen() {
       <SafeAreaView style={styles.container}>
         {/* Viro AR camera – the ONLY camera user on this screen */}
         <ViroARSceneNavigator
-          autofocus={true}
+          autofocus
           style={styles.camera}
           initialScene={{
-            scene: PosterArScene,
+            scene: () => (
+              <PosterArScene 
+                onCharacterTapped={handleCharacterTapped}
+                onPosterFound={handlePosterFound}
+              />
+            ),
           }}
         />
+
+        {/* Chat button - appears when poster detected */}
+        {detectedCharacter && (
+          <View style={styles.chatButtonContainer} pointerEvents="box-none">
+            <TouchableOpacity 
+              style={styles.chatButton} 
+              activeOpacity={0.8} 
+              onPress={handleCharacterTapped}
+            >
+              <Text style={styles.chatButtonText}>💬 Chat with {detectedCharacter}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Your overlay buttons */}
         <View style={styles.rightButtons} pointerEvents="box-none">
@@ -124,5 +155,29 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
+  },
+  chatButtonContainer: {
+    position: "absolute",
+    bottom: 40,
+    left: 20,
+    right: 20,
+    alignItems: "center",
+  },
+  chatButton: {
+    backgroundColor: "#2563eb",
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    borderRadius: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  chatButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "700",
+    textAlign: "center",
   },
 });
