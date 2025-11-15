@@ -15,13 +15,22 @@ export default function ARScreen() {
   const [detectedCharacter, setDetectedCharacter] = useState<string | null>(null);
 
   const handleCharacterTapped = useCallback(() => {
-    console.log("[ARScreen] Navigating to Chat screen...");
-    router.push("/chat" as any);
-  }, [router]);
+    if (!detectedCharacter) return;
+    console.log("[ARScreen] Navigating to Chat screen with:", detectedCharacter);
+    router.push({
+      pathname: "/chat" as any,
+      params: { characterName: detectedCharacter },
+    });
+  }, [router, detectedCharacter]);
 
   const handlePosterFound = useCallback((characterName: string) => {
     console.log("[ARScreen] Poster found:", characterName);
     setDetectedCharacter(characterName);
+  }, []);
+
+  const handlePosterLost = useCallback(() => {
+    console.log("[ARScreen] Poster lost, clearing character");
+    setDetectedCharacter(null);
   }, []);
 
   if (!permission) {
@@ -57,8 +66,8 @@ export default function ARScreen() {
           initialScene={{
             scene: () => (
               <PosterArScene 
-                onCharacterTapped={handleCharacterTapped}
                 onPosterFound={handlePosterFound}
+                onPosterLost={handlePosterLost}
               />
             ),
           }}
@@ -79,9 +88,20 @@ export default function ARScreen() {
 
         {/* Your overlay buttons */}
         <View style={styles.rightButtons} pointerEvents="box-none">
-          <TouchableOpacity style={styles.btn} activeOpacity={0.7} onPress={() => {}}>
-            <Text style={styles.btnText}>soon</Text>
-          </TouchableOpacity>
+          {detectedCharacter ? (
+            <TouchableOpacity 
+              style={[styles.btn, styles.chatBtn]} 
+              activeOpacity={0.7} 
+              onPress={handleCharacterTapped}
+            >
+              <Text style={styles.chatBtnText}>💬</Text>
+              <Text style={[styles.btnText, styles.chatBtnSubText]}>chat</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity style={styles.btn} activeOpacity={0.7} onPress={() => {}}>
+              <Text style={styles.btnText}>soon</Text>
+            </TouchableOpacity>
+          )}
           <TouchableOpacity style={styles.btn} activeOpacity={0.7} onPress={() => {}}>
             <Text style={styles.btnText}>soon</Text>
           </TouchableOpacity>
@@ -179,5 +199,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
     textAlign: "center",
+  },
+  chatBtn: {
+    backgroundColor: "rgba(37, 99, 235, 0.9)",
+    borderColor: "rgba(59, 130, 246, 0.5)",
+  },
+  chatBtnText: {
+    fontSize: 20,
+    marginBottom: 2,
+  },
+  chatBtnSubText: {
+    fontSize: 10,
+    textTransform: "lowercase",
   },
 });
