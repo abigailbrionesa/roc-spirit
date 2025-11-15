@@ -7,12 +7,6 @@ export default function CodeInputScreen() {
     const [code, setCode] = useState('');
     const router = useRouter();
 
-    const [fontsLoaded] = useFonts({
-        'pix': require('../../assets/fonts/pix.ttf'),
-    });
-
-    if (!fontsLoaded) return null;
-
     const handleSubmit = () => {
         if (!code.trim()) {
             Alert.alert('Error', 'Please enter a code.');
