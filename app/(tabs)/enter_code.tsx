@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { TextInput, Text, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform, ImageBackground, View } from 'react-native';
 import { useFonts } from 'expo-font';
+import { useRouter } from 'expo-router';
 
 export default function CodeInputScreen() {
     const [code, setCode] = useState('');
+    const router = useRouter();
 
     const [fontsLoaded] = useFonts({
         'pix': require('../../assets/fonts/pix.ttf'),
@@ -16,6 +18,8 @@ export default function CodeInputScreen() {
             Alert.alert('Error', 'Please enter a code.');
             return;
         }
+        router.push({ pathname: '/lobby', params: { code } });
+
         Alert.alert('Success', `Code entered: ${code}`);
     };
 
