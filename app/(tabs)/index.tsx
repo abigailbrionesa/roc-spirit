@@ -1,8 +1,7 @@
-import React, { useRef, useEffect } from 'react';
-import { ImageBackground, Image, View, StyleSheet, Animated, Dimensions } from 'react-native';
-import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { TouchableOpacity } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Animated, Dimensions, Image, ImageBackground, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 const { height } = Dimensions.get('window');
 
 const AnimatedImageBackground = Animated.createAnimatedComponent(ImageBackground);
@@ -40,9 +39,10 @@ const HomeScreen = () => {
           style={styles.logo}
           resizeMode="contain"
         />
+        
         <View style={styles.buttonContainer}>
-          <TouchableOpacity onPress={() => router.push('/enter_code')}>
-
+          {/* Main Action Buttons */}
+          <TouchableOpacity onPress={() => router.push('/ar')}>
             <Image
               source={require('../../assets/startbutton.png')}
               style={styles.button}
@@ -56,6 +56,37 @@ const HomeScreen = () => {
               resizeMode="contain"
             />
           </TouchableOpacity>
+          
+          {/* Additional Features Row */}
+          <View style={styles.featureRow}>
+            <TouchableOpacity 
+              style={styles.featureButton} 
+              onPress={() => router.push('/enter_code')}
+            >
+              <Text style={styles.featureButtonText}>🎮 Join</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.featureButton} 
+              onPress={() => router.push('/map')}
+            >
+              <Text style={styles.featureButtonText}>📍 Map</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.featureButton} 
+              onPress={() => router.push('/quiz')}
+            >
+              <Text style={styles.featureButtonText}>❓ Quiz</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.featureButton} 
+              onPress={() => router.push('/leaderboard')}
+            >
+              <Text style={styles.featureButtonText}>🏆 Ranks</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </SafeAreaView>
     </SafeAreaProvider>
@@ -90,6 +121,27 @@ const styles = StyleSheet.create({
     width: 192,
     height: 64,
     marginVertical: 12,
+  },
+  featureRow: {
+    flexDirection: 'row',
+    marginTop: 24,
+    gap: 12,
+    paddingHorizontal: 20,
+  },
+  featureButton: {
+    backgroundColor: 'rgba(37, 99, 235, 0.9)',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#1e40af',
+    minWidth: 90,
+    alignItems: 'center',
+  },
+  featureButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '700',
   },
 });
 
