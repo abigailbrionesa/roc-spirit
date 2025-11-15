@@ -1,11 +1,14 @@
 // app/chat.tsx
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ChatScreen() {
   const router = useRouter();
+  const { characterName } = useLocalSearchParams<{ characterName?: string }>();
+
+  const displayName = characterName || "Character";
 
   return (
     <SafeAreaProvider>
@@ -14,12 +17,12 @@ export default function ChatScreen() {
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
             <Text style={styles.backButtonText}>← Back</Text>
           </TouchableOpacity>
-          <Text style={styles.title}>Chat with Character</Text>
+          <Text style={styles.title}>Chat with {displayName}</Text>
         </View>
 
         <View style={styles.content}>
           <Text style={styles.placeholder}>
-            AI chat conversation will go here.
+            Chatting with {displayName}
           </Text>
           <Text style={styles.subtext}>
             This is a normal React Native screen with no camera or AR.
