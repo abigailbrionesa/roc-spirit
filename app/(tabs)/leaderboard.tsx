@@ -8,6 +8,7 @@ import {
     FlatList,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Header from '@/components/ui/header';
 
 export default function LeaderboardScreen() {
     const scores = [
@@ -36,13 +37,14 @@ export default function LeaderboardScreen() {
         >
             <SafeAreaView style={{ flex: 1 }}>
 
-                <View style={styles.header}>
-                    <Text style={styles.title}>🏆 Leaderboard</Text>
-                </View>
+                <Header
+                    title="Leaderboard"
+                    style={{ backgroundColor: '#1e3a8a' }}
+                    titleStyle={{ color: 'white' }}
+                />
 
                 <FlatList
                     data={scores}
-                    
                     renderItem={renderScore}
                     keyExtractor={(item) => item.name}
                     contentContainerStyle={styles.list}
@@ -55,30 +57,6 @@ export default function LeaderboardScreen() {
 const styles = StyleSheet.create({
     background: {
         flex: 1,
-        backgroundColor: 'red',
-    },
-    header: {
-        padding: 20,
-        backgroundColor: '#fff',
-        borderWidth: 3,
-        borderColor: '#1e3a8a',
-        margin: 10,
-        borderRadius: 12,
-        alignItems: 'center',
-    },
-    title: {
-        fontSize: 32,
-        fontFamily: 'pix',
-        color: '#1e3a8a',
-        textShadowColor: 'rgba(0,0,0,0.2)',
-        textShadowOffset: { width: 2, height: 2 },
-        textShadowRadius: 3,
-    },
-    subtitle: {
-        fontSize: 22,
-        fontFamily: 'pix',
-        color: '#2563eb',
-        marginTop: 6,
     },
     list: {
         padding: 20,
