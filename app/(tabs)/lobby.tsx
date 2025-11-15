@@ -1,10 +1,18 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
+import {
+    View,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    StyleSheet,
+    FlatList,
+    Image,
+    ImageBackground,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { useLocalSearchParams } from 'expo-router';
-import { Image } from 'react-native';
 import { useFonts } from 'expo-font';
-import { ImageBackground } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function LobbyScreen() {
     const router = useRouter();
@@ -25,15 +33,13 @@ export default function LobbyScreen() {
 
     const handleJoin = () => {
         if (!name.trim()) return;
-        if (!players.some(p => p.name === name)) {
-            const nextAvatarIndex = players.length + 1;
+        if (!players.some((p) => p.name === name)) {
             const avatar = require(`../../assets/avatars/avatar4.png`);
             setPlayers([...players, { name, avatar }]);
             setNameAdded(true);
         }
         setName('');
     };
-
 
     const handleBegin = () => {
         alert('Game Started!');
@@ -46,62 +52,72 @@ export default function LobbyScreen() {
         </View>
     );
 
-
     return (
-
-        <ImageBackground
-            source={require('../../assets/background4.png')}
-            style={styles.background}
-            resizeMode="cover"
-        >
-            <View style={styles.container}>
-
-                <Text style={styles.title}>🧭 Game Code: {code}</Text>
-
-                <Text style={styles.subtitle}>Players in the Lobby</Text>
-                <FlatList
-                    data={players}
-                    keyExtractor={(item) => item.name}
-                    renderItem={renderPlayer}
-                    numColumns={2}
-                    columnWrapperStyle={{ justifyContent: 'space-between' }}
-                    contentContainerStyle={{ paddingBottom: 20 }}
-                />
-
-
-                <View style={styles.inputRow}>
-                    <TouchableOpacity
-                        style={[styles.joinButtonRow, nameAdded && { opacity: 0.5 }]}
-                        onPress={handleJoin}
-                        disabled={nameAdded}
-                    >
-                        <Text style={styles.buttonText}>Add Name</Text>
-                    </TouchableOpacity>
-                    <TextInput
-                        style={styles.inputRowField}
-                        placeholder=""
-                        placeholderTextColor="#888"
-                        value={name}
-                        onChangeText={setName}
-                        editable={!nameAdded}
-                    />
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#001e5f' }}>
+            <ImageBackground
+                source={require('../../assets/background4.png')}
+                style={styles.background}
+                resizeMode="cover"
+            >
+                <View style={styles.header}>
+                    <Text style={styles.title}>Game Code: {code}</Text>
+                    <Text style={styles.subtitle}>Players in the Lobby</Text>
                 </View>
 
+                <View style={styles.playersContainer}>
+                    {Array.from({ length: Math.ceil(players.length / 2) }).map((_, rowIndex) => (
+                        <View key={rowIndex} style={styles.row}>
+                            {players
+                                .slice(rowIndex * 2, rowIndex * 2 + 2)
+                                .map((player) => (
+                                    <View key={player.name} style={styles.playerCard}>
+                                        <Text style={styles.player}>{player.name}</Text>
+                                        <Image source={player.avatar} style={styles.avatar} />
+                                    </View>
+                                ))}
+                        </View>
+                    ))}
+                </View>
 
-                <TouchableOpacity style={styles.beginButton} onPress={handleBegin}>
-                    <Text style={styles.buttonText}>Begin</Text>
-                </TouchableOpacity>
-            </View>
+                <View style={styles.container}>
+                    <View style={styles.inputRow}>
+                        <TouchableOpacity
+                            style={[styles.joinButtonRow, nameAdded && { opacity: 0.5 }]}
+                            onPress={handleJoin}
+                            disabled={nameAdded}
+                        >
+                            <Text style={styles.buttonText}>Add Name</Text>
+                        </TouchableOpacity>
+                        <TextInput
+                            style={styles.inputRowField}
+                            placeholder=""
+                            placeholderTextColor="#888"
+                            value={name}
+                            onChangeText={setName}
+                            editable={!nameAdded}
+                        />
+                    </View>
 
-        </ImageBackground>
+                    <TouchableOpacity style={styles.beginButton} onPress={handleBegin}>
+                        <Text style={styles.buttonText}>Begin</Text>
+                    </TouchableOpacity>
+                </View>
+            </ImageBackground>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
         padding: 20,
+        flex: 1,
         paddingVertical: 50,
+    },
+    header: {
+        padding: 20,
+        backgroundColor: 'white',
+        borderWidth: 3,
+        borderColor: '#1e3a8a',
     },
     title: {
         fontSize: 26,
@@ -112,6 +128,14 @@ const styles = StyleSheet.create({
         textShadowColor: 'rgba(0,0,0,0.1)',
         textShadowOffset: { width: 1, height: 1 },
         textShadowRadius: 2,
+    },
+    playersContainer: {
+        paddingHorizontal: 20,
+        paddingTop: 10,
+    },
+    row: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
     },
     subtitle: {
         fontSize: 20,
@@ -129,8 +153,6 @@ const styles = StyleSheet.create({
     },
     background: {
         flex: 1,
-        width: '100%',
-        height: '100%',
     },
     avatar: {
         height: 80,
@@ -139,12 +161,16 @@ const styles = StyleSheet.create({
         marginTop: 8,
     },
     player: {
-        fontSize: 18,
+        fontSize: 25,
         fontFamily: 'pix',
         color: '#1e3a8a',
         textAlign: 'center',
+        backgroundColor: 'white',
+        padding: 5,
+        paddingHorizontal: 10,
+        borderWidth: 3,
+        borderColor: '#1e3a8a',
     },
-
     inputRow: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -163,7 +189,7 @@ const styles = StyleSheet.create({
         borderWidth: 3,
         borderColor: '#1e3a8a',
         padding: 14,
-        fontSize: 18,
+        fontSize: 20,
         fontFamily: 'pix',
         backgroundColor: '#fff',
     },
@@ -173,7 +199,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         borderWidth: 3,
         borderColor: '#1e3a8a',
-        color: '#1e3a8a',
         marginTop: 12,
     },
     buttonText: {
