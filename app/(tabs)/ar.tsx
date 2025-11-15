@@ -1,7 +1,7 @@
 import { ViroARSceneNavigator } from "@reactvision/react-viro";
 import { useCameraPermissions } from "expo-camera";
 import { useRouter } from "expo-router";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import PosterArScene from "../ar/posterArScene";
@@ -31,47 +31,68 @@ export default function ARScreen() {
   const totalStops = QUEST_STOPS.length;
   const collectedCount = collectedMascots.length;
 
+  // Track if video is done
+  const [isVideoComplete, setIsVideoComplete] = useState(false);
+  
+  // Track if we're viewing a previously collected character
+  const [collectedCharacterName, setCollectedCharacterName] = useState<string | null>(null);
+
+  // Reset states when moving to next character
+  useEffect(() => {
+    setIsVideoComplete(false);
+    setCollectedCharacterName(null);
+  }, [currentStepIndex]);
+
   // Handle when the correct poster is scanned
   const handleScanSuccess = useCallback(() => {
     console.log("[ARScreen] Correct poster scanned:", currentTarget.name);
-    setGamePhase("INTERACTING");
-  }, [currentTarget, setGamePhase]);
+  }, [currentTarget]);
 
   // Handle when a previously collected character is scanned
   const handleCollectedCharacterScanned = useCallback((scannedId: string, scannedName: string) => {
     console.log("[ARScreen] Previously collected character scanned:", scannedName);
-    // Show the character with just a Talk button (no Continue button)
-    router.push({
-      pathname: "/chat" as any,
-      params: { characterName: scannedName },
-    });
-  }, [router]);
+    console.log("[ARScreen] Current collectedCharacterName:", collectedCharacterName);
+    console.log("[ARScreen] Current gamePhase:", gamePhase);
+    setCollectedCharacterName(scannedName);
+    setGamePhase("INTERACTING");
+    setIsVideoComplete(true);
+    console.log("[ARScreen] Set collectedCharacterName to:", scannedName);
+  }, [setGamePhase, collectedCharacterName, gamePhase]);
+
+  const handleVideoFinished = useCallback(() => {
+    console.log("[ARScreen] Video finished playing - showing buttons");
+    setIsVideoComplete(true);
+    setGamePhase("INTERACTING");
+  }, [setGamePhase]);
 
   // Handle when wrong poster is scanned
   const handleScanFailure = useCallback((scannedName: string) => {
     console.log("[ARScreen] Wrong poster scanned:", scannedName, "Expected:", currentTarget.name);
-    setWrongPosterError(`You can't talk to ${scannedName} yet. Try to find ${currentTarget.name}!`);
     
-    // Clear error after 4 seconds
+    const scannedCharacter = QUEST_STOPS.find(stop => stop.name === scannedName);
+    const isCollected = scannedCharacter && collectedMascots.includes(scannedCharacter.id);
+    
+    if (isCollected) {
+      setWrongPosterError(`You already met ${scannedName}! Look for ${currentTarget.name} to continue.`);
+    } else {
+      setWrongPosterError(`🔒 Unlock previous characters first! Find ${currentTarget.name}.`);
+    }
+    
     setTimeout(() => {
       setWrongPosterError(null);
     }, 4000);
-  }, [currentTarget]);
+  }, [currentTarget, collectedMascots]);
 
   // Handle continuing to next quest step
   const handleContinueQuest = useCallback(() => {
     console.log("[ARScreen] Continuing quest from:", currentTarget.name);
-    
-    // Mark current mascot as collected
     markMascotCollected(currentTarget.id);
     
     const nextStepIndex = currentStepIndex + 1;
     
     if (nextStepIndex < QUEST_STOPS.length) {
-      // Continue to next stop
       advanceToNextStep();
     } else {
-      // Game completed!
       setGamePhase("COMPLETED");
     }
   }, [currentStepIndex, currentTarget, markMascotCollected, advanceToNextStep, setGamePhase]);
@@ -84,6 +105,14 @@ export default function ARScreen() {
       params: { characterName: currentTarget.name },
     });
   }, [currentTarget, router]);
+
+  // Handle going back to finding the current target
+  const handleBackToQuest = useCallback(() => {
+    console.log("[ARScreen] Going back to quest");
+    setCollectedCharacterName(null);
+    setIsVideoComplete(false); // Reset video state too
+    setGamePhase("FINDING");
+  }, [setGamePhase]);
 
   if (!permission) {
     return <View style={styles.container} />;
@@ -144,6 +173,7 @@ export default function ARScreen() {
                 gamePhase={gamePhase}
                 collectedMascots={collectedMascots}
                 onScanSuccess={handleScanSuccess}
+                onVideoFinished={handleVideoFinished}
                 onCollectedCharacterScanned={handleCollectedCharacterScanned}
                 onScanFailure={handleScanFailure}
               />
@@ -159,10 +189,22 @@ export default function ARScreen() {
               <Text style={styles.statusSub}>Look for the poster with your camera</Text>
             </>
           )}
-          {gamePhase === "INTERACTING" && (
+          {gamePhase === "INTERACTING" && !isVideoComplete && (
+            <>
+              <Text style={styles.statusTitle}>Watch the video...</Text>
+              <Text style={styles.statusSub}>{currentTarget.name} has something to say!</Text>
+            </>
+          )}
+          {gamePhase === "INTERACTING" && isVideoComplete && !collectedCharacterName && (
             <>
               <Text style={styles.statusTitle}>You found {currentTarget.name}!</Text>
               <Text style={styles.statusSub}>Talk to them or continue your quest</Text>
+            </>
+          )}
+          {gamePhase === "INTERACTING" && collectedCharacterName && (
+            <>
+              <Text style={styles.statusTitle}>You found {collectedCharacterName}!</Text>
+              <Text style={styles.statusSub}>Chat with them again</Text>
             </>
           )}
         </View>
@@ -181,8 +223,8 @@ export default function ARScreen() {
           </View>
         )}
 
-        {/* Action buttons - bottom center */}
-        {gamePhase === "INTERACTING" && (
+        {/* Action buttons for NEW character - both Talk and Continue */}
+        {gamePhase === "INTERACTING" && isVideoComplete && !collectedCharacterName && (
           <View style={styles.actionsContainer}>
             <TouchableOpacity
               style={[styles.actionButton, styles.chatActionButton]}
@@ -197,6 +239,29 @@ export default function ARScreen() {
               <Text style={styles.actionButtonText}>
                 {currentStepIndex < totalStops - 1 ? "→ Continue Quest" : "✓ Complete Quest"}
               </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Single Chat button for COLLECTED character */}
+        {gamePhase === "INTERACTING" && collectedCharacterName && (
+          <View style={styles.actionsContainer}>
+            <TouchableOpacity
+              style={[styles.actionButton, styles.chatActionButton]}
+              onPress={() => {
+                router.push({
+                  pathname: "/chat" as any,
+                  params: { characterName: collectedCharacterName },
+                });
+              }}
+            >
+              <Text style={styles.actionButtonText}>💬 Chat with {collectedCharacterName}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionButton, styles.continueActionButton]}
+              onPress={handleBackToQuest}
+            >
+              <Text style={styles.actionButtonText}>← Back to Quest</Text>
             </TouchableOpacity>
           </View>
         )}

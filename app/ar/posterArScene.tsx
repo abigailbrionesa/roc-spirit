@@ -1,14 +1,12 @@
 // app/ar/posterArScene.tsx
-// Sequential quest version - only shows the CURRENT target
+// Simplified version - plays video on poster, then shows buttons
 
 import {
-  Viro3DObject,
   ViroARImageMarker,
   ViroARScene,
   ViroARTrackingTargets,
+  ViroVideo,
   ViroAmbientLight,
-  ViroDirectionalLight,
-  ViroNode,
 } from "@reactvision/react-viro";
 import React, { useEffect, useRef, useState } from "react";
 import type { QuestStop } from "../config/questStops";
@@ -17,7 +15,7 @@ import type { GamePhase } from "../store/useGameStore";
 import { POSTER_TARGET_IDS } from "./posterTargets";
 
 // -----------------------------
-// AR target + materials setup
+// AR target setup
 // -----------------------------
 
 try {
@@ -47,14 +45,6 @@ try {
   console.log("[PosterArScene] Tracking targets already created");
 }
 
-// Map poster target names to character names for display
-const CHARACTER_NAMES: Record<string, string> = {
-  [POSTER_TARGET_IDS.ROCKY]: "Rocky",
-  [POSTER_TARGET_IDS.GHOST]: "Ghost Friend",
-  [POSTER_TARGET_IDS.FLOWER]: "Flower Spirit",
-  [POSTER_TARGET_IDS.TEACHER]: "Teacher",
-};
-
 // -----------------------------
 // Scene component
 // -----------------------------
@@ -64,6 +54,7 @@ type PosterArSceneProps = {
   gamePhase: GamePhase;
   collectedMascots: string[];
   onScanSuccess: () => void;
+  onVideoFinished: () => void;
   onCollectedCharacterScanned: (scannedId: string, scannedName: string) => void;
   onScanFailure: (scannedName: string) => void;
 };
@@ -73,106 +64,104 @@ const PosterArScene: React.FC<PosterArSceneProps> = ({
   gamePhase,
   collectedMascots,
   onScanSuccess,
+  onVideoFinished,
   onCollectedCharacterScanned,
   onScanFailure,
 }) => {
-  const [markerVisible, setMarkerVisible] = useState(false);
-  const hasTriggeredRef = useRef(false);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const [showVideo, setShowVideo] = useState(false);
+  const hasTriggeredScanRef = useRef(false);
   const ignoreWrongScansUntilRef = useRef<number>(0);
 
-  // Reset state when currentTarget changes
+  // Reset when target changes or returning to FINDING phase
   useEffect(() => {
-    console.log("[PosterArScene] Current target changed to:", currentTarget.name);
-    setMarkerVisible(false);
-    hasTriggeredRef.current = false;
-    // Ignore wrong poster scans for 2 seconds after target change
-    ignoreWrongScansUntilRef.current = Date.now() + 2000;
-  }, [currentTarget.posterTargetName, currentTarget.name]);
-
-  // Reset markerVisible when returning to FINDING phase
-  useEffect(() => {
+    console.log("[PosterArScene] Resetting for:", currentTarget.name, "Phase:", gamePhase);
+    
+    // Always reset when returning to FINDING (allows re-scanning)
     if (gamePhase === "FINDING") {
-      console.log("[PosterArScene] Returning to FINDING phase, resetting marker");
-      setMarkerVisible(false);
-      hasTriggeredRef.current = false;
-      // Also ignore wrong scans when returning to FINDING
-      ignoreWrongScansUntilRef.current = Date.now() + 2000;
+      setIsVideoPlaying(false);
+      setShowVideo(false);
+      hasTriggeredScanRef.current = false;
+      ignoreWrongScansUntilRef.current = Date.now() + 1000; // Short cooldown
     }
-  }, [gamePhase]);
+  }, [currentTarget.posterTargetName, gamePhase]);
 
   const handleAnchorFound = (scannedTargetName: string) => {
-    console.log(`[PosterArScene] Poster detected:`, scannedTargetName, "Current target:", currentTarget.posterTargetName);
+    console.log(`[PosterArScene] Detected:`, scannedTargetName, "Current phase:", gamePhase);
     
+    // Only process if we're in FINDING phase
+    if (gamePhase !== "FINDING") {
+      console.log("[PosterArScene] Not in FINDING phase, ignoring scan");
+      return;
+    }
+
     // Check if this is the correct poster
     if (scannedTargetName === currentTarget.posterTargetName) {
       console.log("[PosterArScene] ✅ Correct poster!");
-      setMarkerVisible(true);
       
-      // Only trigger scan success if we're in FINDING phase and haven't triggered yet
-      if (gamePhase === "FINDING" && !hasTriggeredRef.current) {
-        hasTriggeredRef.current = true;
+      if (!hasTriggeredScanRef.current) {
+        hasTriggeredScanRef.current = true;
+        setShowVideo(true);
+        setIsVideoPlaying(true);
         onScanSuccess();
       }
     } else {
-      // Check if this character has already been collected
-      const scannedCharacter = QUEST_STOPS.find(stop => stop.posterTargetName === scannedTargetName);
+      // Wrong poster scanned
+      if (Date.now() < ignoreWrongScansUntilRef.current) {
+        console.log("[PosterArScene] ⏭️ Ignoring scan during cooldown");
+        return;
+      }
+
+      const scannedCharacter = QUEST_STOPS.find(
+        stop => stop.posterTargetName === scannedTargetName
+      );
       
-      if (scannedCharacter && collectedMascots.includes(scannedCharacter.id)) {
-        // This is a previously collected character - allow interaction
-        console.log("[PosterArScene] ✅ Previously collected character!");
+      if (!scannedCharacter) {
+        return;
+      }
+
+      // Check if this character has been collected (unlocked)
+      if (collectedMascots.includes(scannedCharacter.id)) {
+        console.log("[PosterArScene] ✅ Previously collected character - allow chat!");
         onCollectedCharacterScanned(scannedCharacter.id, scannedCharacter.name);
       } else {
-        // Ignore wrong scans during the cooldown period
-        if (Date.now() < ignoreWrongScansUntilRef.current) {
-          console.log("[PosterArScene] ⏭️ Ignoring wrong poster during transition");
-          return;
-        }
-        
-        console.log("[PosterArScene] ❌ Wrong poster!");
-        const scannedName = CHARACTER_NAMES[scannedTargetName] || "Unknown";
-        onScanFailure(scannedName);
+        // Character not unlocked yet
+        console.log("[PosterArScene] 🔒 Character not unlocked yet!");
+        onScanFailure(scannedCharacter.name);
       }
     }
   };
 
-  const handleAnchorUpdated = () => {
-    // Keep marker visible while tracking
-    if (!markerVisible) {
-      setMarkerVisible(true);
-    }
+  const handleVideoFinish = () => {
+    console.log("[PosterArScene] Video finished!");
+    setIsVideoPlaying(false);
+    onVideoFinished();
   };
 
   return (
     <ViroARScene>
       <ViroAmbientLight color="#ffffff" intensity={500} />
-      <ViroDirectionalLight
-        color="#ffffff"
-        direction={[0, -1, -0.2]}
-        intensity={800}
-      />
 
-      {/* Only render marker for the CURRENT target */}
+      {/* Current target marker - shows video */}
       <ViroARImageMarker
         target={currentTarget.posterTargetName}
         onAnchorFound={() => handleAnchorFound(currentTarget.posterTargetName)}
-        onAnchorUpdated={handleAnchorUpdated}
       >
-        {markerVisible && (
-          <ViroNode position={[0, 0.08, 0]}>
-            <ViroNode transformBehaviors={["billboardY"]}>
-              <Viro3DObject
-                source={currentTarget.model}
-                type="GLB"
-                scale={currentTarget.scale}
-                rotation={currentTarget.rotation}
-                position={[0, 0, 0]}
-              />
-            </ViroNode>
-          </ViroNode>
+        {showVideo && (
+          <ViroVideo
+            source={currentTarget.video}
+            width={0.6}
+            height={0.8} // Back to square/full coverage
+            position={[0, 0, 0]}
+            rotation={[-90, 0, 0]}
+            paused={!isVideoPlaying}
+            loop={false}
+            onFinish={handleVideoFinish}
+          />
         )}
       </ViroARImageMarker>
 
-      {/* Also scan other posters to detect wrong scans */}
+      {/* Other posters - for wrong scan detection */}
       {Object.values(POSTER_TARGET_IDS)
         .filter(targetId => targetId !== currentTarget.posterTargetName)
         .map(targetId => (
@@ -181,7 +170,7 @@ const PosterArScene: React.FC<PosterArSceneProps> = ({
             target={targetId}
             onAnchorFound={() => handleAnchorFound(targetId)}
           >
-            {/* No model rendered for wrong posters */}
+            {/* No content rendered */}
           </ViroARImageMarker>
         ))
       }
