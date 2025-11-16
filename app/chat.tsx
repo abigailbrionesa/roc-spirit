@@ -1,6 +1,6 @@
 import Header from "@/components/ui/header";
-import React, { useEffect, useState } from "react";
-import { Image, ImageBackground, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { Image, ImageBackground, KeyboardAvoidingView, Platform, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 import { npcPersonalities } from "@/app/data/npcPersonalities";
 import { quizData } from "@/app/data/quizData";
@@ -20,6 +20,7 @@ type Message = {
 const ChatScreen: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
+  const scrollViewRef = useRef<ScrollView>(null);
   const { characterName, characterId } = useLocalSearchParams();
 
   const npcId = Array.isArray(characterId) ? characterId[0] : characterId;
@@ -81,6 +82,11 @@ const ChatScreen: React.FC = () => {
     const aiMessage: Message = { id: Date.now().toString() + "_ai", text: aiText, fromUser: false };
 
     setMessages(prev => [...prev, aiMessage]);
+    
+    // Auto-scroll to bottom after new message
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 100);
   };
 
   return (
@@ -97,10 +103,16 @@ const ChatScreen: React.FC = () => {
 
       <Header title="Chat" />
 
-      <View style={styles.body}>
+      <KeyboardAvoidingView 
+        style={styles.body}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 75 : 0}
+      >
         <ScrollView
+          ref={scrollViewRef}
           contentContainerStyle={styles.messagesContainer}
           showsVerticalScrollIndicator={false}
+          onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
         >
           {messages.map(msg => (
             <View
@@ -124,6 +136,8 @@ const ChatScreen: React.FC = () => {
             value={input}
             onChangeText={setInput}
             selectionColor="#000"
+            onSubmitEditing={sendMessage}
+            returnKeyType="send"
           />
           <TouchableOpacity onPress={sendMessage} style={styles.sendButton}>
             <Image
@@ -134,7 +148,7 @@ const ChatScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
 
-      </View>
+      </KeyboardAvoidingView>
     </ImageBackground>
   );
 };
@@ -193,6 +207,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     padding: 5,
+    marginTop: 16,
     marginBottom: 15,
     borderWidth: 2.5,
     borderColor: "#9ca3af",

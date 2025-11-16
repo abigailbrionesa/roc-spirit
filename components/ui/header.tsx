@@ -1,6 +1,6 @@
-import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Image, Platform, StatusBar, ViewStyle, TextStyle, ImageStyle } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import React from "react";
+import { Image, ImageStyle, Platform, StatusBar, StyleSheet, Text, TextStyle, TouchableOpacity, View, ViewStyle } from "react-native";
 
 type HeaderProps = {
   title: string;
@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 18,
     paddingBottom: 12,
     borderBottomWidth: 3,
     borderBottomColor: "#1f2937",
