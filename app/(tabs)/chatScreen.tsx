@@ -1,8 +1,8 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet, StatusBar, ImageBackground, TextInput, TouchableOpacity, ScrollView, Image } from "react-native";
 import Header from "@/components/ui/header";
-import { useLocalSearchParams } from "expo-router";
 import { startVapiCall } from "@/lib/vapi";
+import { useLocalSearchParams } from "expo-router";
+import React, { useState } from "react";
+import { Image, ImageBackground, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 const getAIResponse = async (prompt: string) => {
   return `NPC Response for prompt: "${prompt}"`;
 };

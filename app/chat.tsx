@@ -1,8 +1,12 @@
 import Header from "@/components/ui/header";
-import { startVapiCall } from "@/lib/vapi";
-import { useLocalSearchParams } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Image, ImageBackground, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+
+import { npcPersonalities } from "@/app/data/npcPersonalities";
+import { quizData } from "@/app/data/quizData";
+import { useChatGPT } from "@/hooks/useChatGPT";
+import { useLocalSearchParams } from "expo-router";
+
 const getAIResponse = async (prompt: string) => {
   return `NPC Response for prompt: "${prompt}"`;
 };
@@ -14,28 +18,69 @@ type Message = {
 };
 
 const ChatScreen: React.FC = () => {
-  const params = useLocalSearchParams<{ characterName?: string }>();
-  const activeCharacterName =
-    typeof params.characterName === "string" && params.characterName.length > 0
-      ? params.characterName
-      : "Rocky";
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
+  const { characterName, characterId } = useLocalSearchParams();
+
+  const npcId = Array.isArray(characterId) ? characterId[0] : characterId;
+  // const npcName = Array.isArray(characterName) ? characterName[0] : characterName;
+
+  const quizContext = quizData
+  .map(
+    (q, index) =>
+      `${index + 1}. Question: ${q.question}\n   Correct answer: ${q.answer}`
+  )
+  .join("\n");
+
+
+  const basePersonality = npcPersonalities[npcId] ?? "You are a friendly NPC.";
+
+  const systemPrompt = `
+  ${basePersonality}
+  `;
+  
+
+  const { sendToChatGPT, generateIntroMessage } = useChatGPT(systemPrompt);
+
+  useEffect(() => {
+    const runIntro = async () => {
+      const intro = await generateIntroMessage();
+      if (intro) {
+        setMessages([
+          {
+            id: Date.now().toString() + "_intro",
+            text: intro,
+            fromUser: false,
+          },
+        ]);
+      }
+    };
+  
+    runIntro();
+  }, []);
 
   const sendMessage = async () => {
     if (!input.trim()) return;
-
+    
     const userMessage: Message = { id: Date.now().toString(), text: input, fromUser: true };
     setMessages(prev => [...prev, userMessage]);
+    
+    // Build conversation history INCLUDING the new user message
+    const openAIMessages = [
+      ...messages.map(m => ({
+        role: m.fromUser ? "user" : "assistant",
+        content: m.text,
+      })),
+      { role: "user", content: input } // Add the current user input here
+    ];
+    
     setInput("");
+    
+    const aiText = await sendToChatGPT(openAIMessages);
 
-    const aiText = await getAIResponse(input);
     const aiMessage: Message = { id: Date.now().toString() + "_ai", text: aiText, fromUser: false };
-    setMessages(prev => [...prev, aiMessage]);
-  };
 
-  const handleVoiceChat = () => {
-    startVapiCall(activeCharacterName);
+    setMessages(prev => [...prev, aiMessage]);
   };
 
   return (
@@ -69,10 +114,6 @@ const ChatScreen: React.FC = () => {
             </View>
           ))}
         </ScrollView>
-
-        <TouchableOpacity style={styles.voiceButton} onPress={handleVoiceChat}>
-          <Text style={styles.voiceButtonText}>🎤 Talk with {activeCharacterName}</Text>
-        </TouchableOpacity>
 
         <View style={styles.inputContainer}>
           {input.length === 0 && (
@@ -147,20 +188,6 @@ const styles = StyleSheet.create({
     color: "#000",
     fontFamily: 'Vt',
     fontSize: 25,
-  },
-  voiceButton: {
-    backgroundColor: "#8b5cf6",
-    paddingVertical: 12,
-    borderRadius: 12,
-    alignItems: "center",
-    marginBottom: 16,
-    borderWidth: 2.5,
-    borderColor: "#000",
-  },
-  voiceButtonText: {
-    color: "#fff",
-    fontFamily: "Vt",
-    fontSize: 22,
   },
   inputContainer: {
     flexDirection: "row",
