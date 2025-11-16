@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import React, { useEffect, useRef } from 'react';
 import { Animated, Dimensions, Image, ImageBackground, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
@@ -100,6 +100,17 @@ const HomeScreen = () => {
               </View>
             </TouchableOpacity>
           </View>
+
+          {/* Native Voice Chat Link */}
+          <Link
+            href="/rocky-voice"
+            style={styles.voiceChatLink}
+            asChild
+          >
+            <TouchableOpacity style={styles.voiceChatLinkButton}>
+              <Text style={styles.voiceChatLinkText}>🎙️ Voice Chat with Rocky</Text>
+            </TouchableOpacity>
+          </Link>
         </View>
       </SafeAreaView>
     </SafeAreaProvider>
@@ -172,6 +183,30 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     textTransform: 'uppercase',
+  },
+  voiceChatLink: {
+    marginTop: 20,
+    alignSelf: 'center',
+  },
+  voiceChatLinkButton: {
+    backgroundColor: '#10b981',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 999,
+    borderWidth: 3,
+    borderColor: '#000',
+    shadowColor: '#000',
+    shadowOffset: { width: 3, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 6,
+  },
+  voiceChatLinkText: {
+    color: '#fff',
+    fontFamily: 'pix',
+    fontSize: 18,
+    fontWeight: '700',
+    textAlign: 'center',
   },
 });
 

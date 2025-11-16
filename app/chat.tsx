@@ -1,4 +1,5 @@
 import Header from "@/components/ui/header";
+import { useVapi } from "@/hooks/useVapi";
 import React, { useEffect, useRef, useState } from "react";
 import { Image, ImageBackground, KeyboardAvoidingView, Platform, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
@@ -20,11 +21,28 @@ type Message = {
 const ChatScreen: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
+  const [isVoiceMode, setIsVoiceMode] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const { characterName, characterId } = useLocalSearchParams();
 
   const npcId = Array.isArray(characterId) ? characterId[0] : characterId;
-  // const npcName = Array.isArray(characterName) ? characterName[0] : characterName;
+  const npcName = Array.isArray(characterName) ? characterName[0] : characterName || "Rocky";
+
+  // Get assistant ID based on character (you'll need to add these to .env)
+  const getAssistantId = (charName: string) => {
+    const assistantMap: Record<string, string> = {
+      Rocky: process.env.EXPO_PUBLIC_ROCKY_ASSISTANT_ID || "",
+      "Ghost Friend": process.env.EXPO_PUBLIC_GHOST_ASSISTANT_ID || "",
+      "Flower Spirit": process.env.EXPO_PUBLIC_FLOWER_ASSISTANT_ID || "",
+      Teacher: process.env.EXPO_PUBLIC_TEACHER_ASSISTANT_ID || "",
+    };
+    return assistantMap[charName] || process.env.EXPO_PUBLIC_VAPI_ASSISTANT_ID || "";
+  };
+
+  const assistantId = getAssistantId(npcName);
+
+  // Vapi hook for native voice
+  const { startCall, stopCall, isCalling, transcripts } = useVapi(assistantId);
 
   const quizContext = quizData
   .map(
@@ -89,6 +107,14 @@ const ChatScreen: React.FC = () => {
     }, 100);
   };
 
+  const handleVoiceToggle = () => {
+    if (isCalling) {
+      stopCall();
+    } else {
+      startCall();
+    }
+  };
+
   return (
     <ImageBackground
       source={require('../assets/background.png')}
@@ -101,20 +127,43 @@ const ChatScreen: React.FC = () => {
         translucent={true}
       />
 
-      <Header title="Chat" />
+      <View style={styles.headerContainer}>
+        <Header title={`Chat with ${npcName}`} />
+        <TouchableOpacity 
+          style={[
+            styles.voiceChatButton, 
+            isCalling && styles.voiceChatButtonActive
+          ]} 
+          onPress={handleVoiceToggle}
+        >
+          <Text style={styles.voiceChatIcon}>
+            {isCalling ? "⏹️" : "🎤"}
+          </Text>
+        </TouchableOpacity>
+      </View>
 
       <KeyboardAvoidingView 
         style={styles.body}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 75 : 0}
       >
+        {/* Voice Call Status */}
+        {isCalling && (
+          <View style={styles.voiceStatusBanner}>
+            <Text style={styles.voiceStatusText}>
+              🎙️ Voice call active - Speak now!
+            </Text>
+          </View>
+        )}
+
         <ScrollView
           ref={scrollViewRef}
           contentContainerStyle={styles.messagesContainer}
           showsVerticalScrollIndicator={false}
           onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
         >
-          {messages.map(msg => (
+          {/* Text Chat Messages */}
+          {!isCalling && messages.map(msg => (
             <View
               key={msg.id}
               style={[
@@ -125,28 +174,57 @@ const ChatScreen: React.FC = () => {
               <Text style={styles.bubbleText}>{msg.text}</Text>
             </View>
           ))}
+
+          {/* Voice Transcripts */}
+          {isCalling && transcripts.map((line, idx) => {
+            const isUser = line.startsWith("user:");
+            const text = line.replace(/^(user:|assistant):/, "").trim();
+            return (
+              <View
+                key={idx}
+                style={[
+                  styles.bubble,
+                  isUser ? styles.userBubble : styles.npcBubble
+                ]}
+              >
+                <Text style={styles.bubbleText}>{text}</Text>
+              </View>
+            );
+          })}
         </ScrollView>
 
-        <View style={styles.inputContainer}>
-          {input.length === 0 && (
-            <Text style={styles.placeholder}>Type your message...</Text>
-          )}
-          <TextInput
-            style={styles.input}
-            value={input}
-            onChangeText={setInput}
-            selectionColor="#000"
-            onSubmitEditing={sendMessage}
-            returnKeyType="send"
-          />
-          <TouchableOpacity onPress={sendMessage} style={styles.sendButton}>
-            <Image
-              source={require('../assets/sendbutton.png')}
-              resizeMode="contain"
-              style={styles.sendImage}
+        {/* Only show text input when NOT in voice call */}
+        {!isCalling && (
+          <View style={styles.inputContainer}>
+            {input.length === 0 && (
+              <Text style={styles.placeholder}>Type your message...</Text>
+            )}
+            <TextInput
+              style={styles.input}
+              value={input}
+              onChangeText={setInput}
+              selectionColor="#000"
+              onSubmitEditing={sendMessage}
+              returnKeyType="send"
             />
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity onPress={sendMessage} style={styles.sendButton}>
+              <Image
+                source={require('../assets/sendbutton.png')}
+                resizeMode="contain"
+                style={styles.sendImage}
+              />
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Voice call info when active */}
+        {isCalling && (
+          <View style={styles.voiceInfoContainer}>
+            <Text style={styles.voiceInfoText}>
+              Tap the ⏹️ button above to end the call
+            </Text>
+          </View>
+        )}
 
       </KeyboardAvoidingView>
     </ImageBackground>
@@ -160,6 +238,66 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     height: '100%',
+  },
+  headerContainer: {
+    position: 'relative',
+  },
+  voiceChatButton: {
+    position: 'absolute',
+    right: 16,
+    top: Platform.OS === 'ios' ? 28 : 16,
+    backgroundColor: '#10b981',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2.5,
+    borderColor: '#000',
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 2,
+    elevation: 4,
+    zIndex: 10,
+  },
+  voiceChatButtonActive: {
+    backgroundColor: '#dc2626', // Red when active
+  },
+  voiceChatIcon: {
+    fontSize: 24,
+  },
+  voiceStatusBanner: {
+    backgroundColor: '#10b981',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderWidth: 2.5,
+    borderColor: '#000',
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  voiceStatusText: {
+    color: '#fff',
+    fontFamily: 'Vt',
+    fontSize: 18,
+    textAlign: 'center',
+    fontWeight: '700',
+  },
+  voiceInfoContainer: {
+    backgroundColor: '#f3f4f6',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderWidth: 2.5,
+    borderColor: '#9ca3af',
+    marginTop: 16,
+    marginBottom: 15,
+  },
+  voiceInfoText: {
+    color: '#374151',
+    fontFamily: 'Vt',
+    fontSize: 16,
+    textAlign: 'center',
   },
   body: {
     flex: 1,
