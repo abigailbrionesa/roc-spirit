@@ -60,32 +60,44 @@ const HomeScreen = () => {
           </TouchableOpacity>
 
           <View style={styles.featureRow}>
-            <TouchableOpacity
+            {/* <TouchableOpacity
               style={styles.featureButton}
               onPress={() => router.push('/ar')}
             >
-              <Text style={styles.featureButtonText}>🎮 AR</Text>
-            </TouchableOpacity>
+              <View style={styles.buttonInner}>
+                <Text style={styles.featureButtonIcon}>🎮</Text>
+                <Text style={styles.featureButtonText}>AR</Text>
+              </View>
+            </TouchableOpacity> */}
 
             <TouchableOpacity
               style={styles.featureButton}
               onPress={() => router.push('/map')}
             >
-              <Text style={styles.featureButtonText}>📍 Map</Text>
+              <View style={styles.buttonInner}>
+                <Text style={styles.featureButtonIcon}>📍</Text>
+                <Text style={styles.featureButtonText}>Map</Text>
+              </View>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.featureButton}
               onPress={() => router.push('/quiz')}
             >
-              <Text style={styles.featureButtonText}>❓ Quiz</Text>
+              <View style={styles.buttonInner}>
+                <Text style={styles.featureButtonIcon}>❓</Text>
+                <Text style={styles.featureButtonText}>Quiz</Text>
+              </View>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.featureButton}
               onPress={() => router.push('/leaderboard')}
             >
-              <Text style={styles.featureButtonText}>🏆 Ranks</Text>
+              <View style={styles.buttonInner}>
+                <Text style={styles.featureButtonIcon}>🏆</Text>
+                <Text style={styles.featureButtonText}>Ranks</Text>
+              </View>
             </TouchableOpacity>
           </View>
         </View>
@@ -126,24 +138,40 @@ const styles = StyleSheet.create({
   featureRow: {
     flexDirection: 'row',
     marginTop: 24,
-    gap: 12,
+    gap: 16,
     paddingHorizontal: 20,
+    flexWrap: 'wrap',
+    justifyContent: 'center',
   },
   featureButton: {
-    backgroundColor: 'rgba(37, 99, 235, 0.9)',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#1e40af',
-    minWidth: 90,
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 0,
+    borderWidth: 4,
+    borderColor: '#000000',
+    minWidth: 85,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 8,
+  },
+  buttonInner: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  featureButtonIcon: {
+    fontSize: 28,
+    marginBottom: 4,
   },
   featureButtonText: {
-    color: '#fff',
+    color: '#041a46',
     fontFamily: 'pix',
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '700',
+    textTransform: 'uppercase',
   },
 });
 

@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
-import { View, StyleSheet, ActivityIndicator } from "react-native";
-import MapView, { Marker } from "react-native-maps";
-import * as Location from "expo-location";
-import pixelStyle from "../../assets/pixelstyle.json";
 import Header from "@/components/ui/header";
+import * as Location from "expo-location";
+import React, { useEffect, useState } from "react";
+import { ActivityIndicator, StyleSheet } from "react-native";
+import MapView, { Marker } from "react-native-maps";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import pixelStyle from "../../assets/pixelstyle.json";
 
 export default function CampusMap() {
     const [location, setLocation] = useState(null);
@@ -39,48 +40,52 @@ export default function CampusMap() {
 
     if (loading) {
         return (
-            <View style={styles.loader}>
-                <ActivityIndicator size="large" />
-            </View>
+            <SafeAreaProvider>
+                <SafeAreaView style={styles.loader}>
+                    <ActivityIndicator size="large" />
+                </SafeAreaView>
+            </SafeAreaProvider>
         );
     }
 
     return (
-        <View style={styles.container}>
-            <Header
-                title="Campus Map"
-                iconSource={require("../../assets/mapicon.png")}
-                style={{ backgroundColor: "#FFD82B" }}
-            />
+        <SafeAreaProvider>
+            <SafeAreaView style={styles.container} edges={['top']}>
+                <Header
+                    title="Campus Map"
+                    iconSource={require("../../assets/mapicon.png")}
+                    style={{ backgroundColor: "#FFD82B" }}
+                />
 
-            <MapView
-                style={styles.map}
-                initialRegion={UR_CENTER}
-                showsUserLocation={true}
-                showsMyLocationButton={true}
-                customMapStyle={pixelStyle}
-            >
-                {markers.map((m) => (
-                    <Marker
-                        key={m.id}
-                        coordinate={m.coordinate}
-                        title={m.title}
-                        icon={require("../../assets/marker22.png")}
-                    />
-                ))}
+                <MapView
+                    style={styles.map}
+                    initialRegion={UR_CENTER}
+                    showsUserLocation={true}
+                    showsMyLocationButton={true}
+                    customMapStyle={pixelStyle}
+                >
+                    {markers.map((m) => (
+                        <Marker
+                            key={m.id}
+                            coordinate={m.coordinate}
+                            title={m.title}
+                            icon={require("../../assets/marker22.png")}
+                        />
+                    ))}
 
-                {location && (
-                    <Marker
-                        coordinate={{
-                            latitude: location.latitude,
-                            longitude: location.longitude,
-                        }}
-                        icon={require("../../assets/marker11.png")}
-                        title="Your Location"
-                    />
-                )}
-            </MapView>
-        </View>
+                    {location && (
+                        <Marker
+                            coordinate={{
+                                latitude: location.latitude,
+                                longitude: location.longitude,
+                            }}
+                            icon={require("../../assets/marker11.png")}
+                            title="Your Location"
+                        />
+                    )}
+                </MapView>
+            </SafeAreaView>
+        </SafeAreaProvider>
     );
 }
 
