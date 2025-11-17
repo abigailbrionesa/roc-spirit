@@ -1,13 +1,21 @@
 import Header from "@/components/ui/header";
 import * as Location from "expo-location";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet } from "react-native";
-import MapView, { Marker } from "react-native-maps";
+import { ActivityIndicator, Platform, StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import pixelStyle from "../../assets/pixelstyle.json";
 
+// Only import MapView on native platforms
+let MapView: any = null;
+let Marker: any = null;
+if (Platform.OS !== "web") {
+  const MapModule = require("react-native-maps");
+  MapView = MapModule.default;
+  Marker = MapModule.Marker;
+}
+
 export default function CampusMap() {
-    const [location, setLocation] = useState(null);
+    const [location, setLocation] = useState<Location.LocationObjectCoords | null>(null);
     const [loading, setLoading] = useState(true);
 
     const UR_CENTER = {
@@ -43,6 +51,29 @@ export default function CampusMap() {
             <SafeAreaProvider>
                 <SafeAreaView style={styles.loader}>
                     <ActivityIndicator size="large" />
+                </SafeAreaView>
+            </SafeAreaProvider>
+        );
+    }
+
+    // Web fallback
+    if (Platform.OS === "web") {
+        return (
+            <SafeAreaProvider>
+                <SafeAreaView style={styles.container} edges={['top']}>
+                    <Header
+                        title="Campus Map"
+                        iconSource={require("../../assets/mapicon.png")}
+                        style={{ backgroundColor: "#FFD82B" }}
+                    />
+                    <View style={styles.webFallback}>
+                        <Text style={styles.webFallbackText}>
+                            📱 Map view is only available on mobile devices
+                        </Text>
+                        <Text style={styles.webFallbackSubtext}>
+                            Please open this app on iOS or Android to view the campus map
+                        </Text>
+                    </View>
                 </SafeAreaView>
             </SafeAreaProvider>
         );
@@ -100,5 +131,24 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
+    },
+    webFallback: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        padding: 20,
+        backgroundColor: "#f5f5f5",
+    },
+    webFallbackText: {
+        fontSize: 18,
+        fontWeight: "600",
+        textAlign: "center",
+        marginBottom: 10,
+        color: "#333",
+    },
+    webFallbackSubtext: {
+        fontSize: 14,
+        textAlign: "center",
+        color: "#666",
     },
 });

@@ -1,26 +1,34 @@
 // src/hooks/useVapi.ts
 import { useEffect, useState } from "react";
-import Vapi from "@vapi-ai/react-native";
+import { Platform } from "react-native";
+
+let VapiClass: any = null;
+
+// Only load native module on iOS/Android, and guard for Expo Go
+try {
+  if (Platform.OS === "ios" || Platform.OS === "android") {
+    VapiClass = require("@vapi-ai/react-native").default;
+  }
+} catch (e) {
+  console.warn(
+    "[Vapi] Native module not available. Are you running in Expo Go?",
+    e
+  );
+}
 
 const VAPI_PUBLIC_KEY = process.env.EXPO_PUBLIC_VAPI_PUBLIC_KEY!;
-
-// Single Vapi instance shared across the app
-const vapi = new Vapi(VAPI_PUBLIC_KEY);
+const vapi = VapiClass ? new VapiClass(VAPI_PUBLIC_KEY) : null;
 
 export function useVapi(assistantId: string) {
   const [isCalling, setIsCalling] = useState(false);
   const [transcripts, setTranscripts] = useState<string[]>([]);
 
   useEffect(() => {
-    const handleCallStart = () => {
-      setIsCalling(true);
-    };
+    if (!vapi) return;
 
-    const handleCallEnd = () => {
-      setIsCalling(false);
-    };
-
-    const handleMessage = (message: any) => {
+    const onStart = () => setIsCalling(true);
+    const onEnd = () => setIsCalling(false);
+    const onMessage = (message: any) => {
       if (message.type === "transcript") {
         setTranscripts(prev => [
           ...prev,
@@ -29,30 +37,29 @@ export function useVapi(assistantId: string) {
       }
     };
 
-    vapi.on("call-start", handleCallStart);
-    vapi.on("call-end", handleCallEnd);
-    vapi.on("message", handleMessage);
+    vapi.on("call-start", onStart);
+    vapi.on("call-end", onEnd);
+    vapi.on("message", onMessage);
 
     return () => {
-      vapi.off("call-start", handleCallStart);
-      vapi.off("call-end", handleCallEnd);
-      vapi.off("message", handleMessage);
+      vapi.off("call-start", onStart);
+      vapi.off("call-end", onEnd);
+      vapi.off("message", onMessage);
     };
   }, []);
 
   const startCall = () => {
-    // Start voice call with this assistant
+    if (!vapi) {
+      console.warn("[Vapi] startCall called but Vapi is not initialized.");
+      return;
+    }
     vapi.start(assistantId);
   };
 
   const stopCall = () => {
+    if (!vapi) return;
     vapi.stop();
   };
 
-  return {
-    startCall,
-    stopCall,
-    isCalling,
-    transcripts,
-  };
+  return { startCall, stopCall, isCalling, transcripts };
 }
