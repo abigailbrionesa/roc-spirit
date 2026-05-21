@@ -1,48 +1,86 @@
-# Rochester Spirit: AR Campus Quest
+![ROC Spirit preview](assets/rocspirit.png)
 
-Rochester Spirit is an **AR-powered campus quest** for prospective students at the **University of Rochester**. It turns traditional tours into an interactive, playful experience where students explore campus with a live guide, scan posters to reveal AR characters, complete mini-games and quizzes, and learn about UR’s culture, history, and traditions.
+<samp>
 
----
+# ROC Spirit
 
-## Overview
+<p>
+ROC Spirit is a 1st-place DandyHacks augmented-reality campus tour app with 3D characters, map-based exploration, quests, and a themed mobile experience. It brings University of Rochester storytelling into an interactive Expo and React Native app.
+</p>
 
-Students follow a tour guide and scan UR-themed posters around campus. Scanning a poster spawns a 3D AR character who delivers fun facts, shows media, and challenges students with interactive tasks. Interactions earn points; a final quiz determines the winner.
+<p>
+Built with <strong>Expo, React Native, ViroReact, Supabase, Zustand, 3D models, video assets, and custom quest content</strong>.
+</p>
 
----
+<p>
+<img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white">
+<img alt="React" src="https://img.shields.io/badge/React-20232A?style=flat-square&logo=react&logoColor=61DAFB">
+<img alt="Expo" src="https://img.shields.io/badge/Expo-000020?style=flat-square&logo=expo&logoColor=white">
+<img alt="Supabase" src="https://img.shields.io/badge/Supabase-3FCF8E?style=flat-square&logo=supabase&logoColor=white">
+</p>
 
-## Key Features
+## Highlights
 
-- **Augmented Reality** — 3D characters appear when scanning posters.  
-- **Gamified Learning** — Points, mini-games, and quizzes encourage engagement.  
-- **Immersive Storytelling** — Characters are inspired by campus symbols, landmarks, and traditions.  
-- **Social Interaction** — Teams discuss findings and collaborate between stops.  
-- **Rewards** — Top scorer receives University of Rochester merchandise.
+<ul>
+  <li>AR poster scenes connect campus markers to animated 3D characters and videos.</li>
+  <li>Quest-stop configuration and game state support a guided campus-tour flow.</li>
+  <li>Includes custom character models, branded artwork, maps, and themed UI assets.</li>
+  <li>Uses Supabase and secure storage hooks for app data foundations.</li>
+</ul>
 
----
+## Tech Stack
 
-## Characters
+<table>
+  <tr><th>Layer</th><th>Tools</th></tr>
+  <tr><td>Core stack</td><td>TypeScript, Expo, React Native, ViroReact</td></tr>
+  <tr><td>Supporting tools</td><td>Supabase, Zustand, React Navigation, 3D GLB assets</td></tr>
+</table>
 
-- **Asahel the Scholar** — Explains *Meliora* and its origins.  
-- **Azariah the Dandelion Spirit** — Shares the dandelion symbolism.  
-- **Rocky the Yellowjacket** — Talks athletics and mascot history.
-- **Rush Rhees Librarian Ghost** — Library history and archives trivia.  
-- **Clock Tower Guardian** — Tower superstitions and acorn tradition.  
-- **Eastman/Wilson Day Volunteers** — Community service traditions.
+## Quick Start
 
-## How it Works
+<pre><code>npm install
+npm start
+npm run ios
+npm run android</code></pre>
 
-1. **Guided Exploration:** Live student guide leads groups across campus.  
-2. **Scan Posters:** Point device camera at posters to spawn AR characters.  
-3. **AR Interaction:** Characters present content, mini-games, and questions.  
-4. **Points & Gamification:** Interactions and mini-games award points.  
-5. **Final Quiz:** A short quiz and combined score determine the winner.
+## Project Structure
 
----
+<pre>app/ - Expo Router screens, AR scenes, and quest configuration
+components/ - Camera, model, header, and shared UI components
+assets/ - Images, videos, marker art, and 3D models
+lib/ - Supabase, Vapi, colors, and helpers
+hooks/ - Camera permission and theme hooks</pre>
 
-## Goals
+## Validation
 
-- Convert passive tours into interactive adventures.  
-- Use AR and gamification to teach campus landmarks, culture, and traditions.  
-- Strengthen school spirit — *Meliora* — through shared discovery.
+<p>
+Run <code>npm run lint</code> and test on a device/simulator for AR behavior.
+</p>
 
----
+## Scope Notes
+
+<p>
+AR features depend on device capabilities, camera permission, and native runtime support; web mode will not represent the full experience.
+</p>
+
+## Roadmap
+
+<ul>
+  <li>Document Supabase environment variables and schema assumptions.</li>
+  <li>Add demo screenshots or a short tour GIF.</li>
+  <li>Add setup notes for testing AR markers.</li>
+</ul>
+
+## License
+
+<p>
+No license file is currently included.
+</p>
+
+## Built By
+
+<p>
+Built by <strong>Abigail Briones Aranda</strong> as part of a growing AI/software engineering portfolio focused on readable systems, thoughtful interfaces, and reproducible project documentation.
+</p>
+
+</samp>
